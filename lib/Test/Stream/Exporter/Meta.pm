@@ -150,6 +150,66 @@ experimental phase is over.
 
 L<Test::Stream::Exporter> uses this package to manage exports.
 
+Every package that uses C<Test::Stream::Exporter> has a
+C<Test::Stream::Exporter::Meta> object created for it which contains the
+metadata about the available exports and the kind of export they are.
+
+=head1 METHODS
+
+=over 4
+
+=item Test::Stream::Exporter::Meta->new( $PACKAGE )
+
+Constructs a C<metaobject> for C<$PACKAGE> and returns it. If one already
+exists, it is returned.
+
+=item Test::Stream::Exporter::Meta->get( $PACKAGE )
+
+Returns a C<metaobject> for C<$PACKAGE> if one exists. Returns C<undef> if one
+does not exist.
+
+=item metaobject->add( $SUBNAME )
+
+=item metaobject->add( $SUBNAME => $SUBREF )
+
+Declares an optional export called C<$SUBNAME>. If C<$SUBREF> is not specified,
+then the exported subroutine is automatically retrieved from the C<$PACKAGE>
+associated with the C<metaobject> of the same C<sub> name.
+
+=item metaobject->add_default( $SUBNAME )
+
+=item metaobject->add_default( $SUBNAME => $SUBREF )
+
+Declares a default export called C<$SUBNAME>. Semantics otherwise identical to
+C<< metaobject->add >>
+
+=item metaobject->add_bulk( $SUBNAME, $SUBNAME, ... )
+
+Declare a list of optional exports that are all available as package
+subroutines by the same name.
+
+=item metaobject->add_default_bulk( $SUBNAME, $SUBNAME, ... )
+
+Declare a list of default exports that are all available as package subroutines
+by the same name.
+
+=item metaobject->default()
+
+Returns the list of C<$SUBNAME> values that represent symbols that are exported
+by this exporter which will be exported by default.
+
+=item metaobject->all()
+
+Returns the list of all C<$SUBNAME> values that represent symbols that are
+exported by this exporter.
+
+=item metaobject->exports()
+
+Returns a C<HASHREF> of C<< $SUBNAME => $CODEREF >> values of all avialable
+exports.
+
+=back
+
 =head1 SOURCE
 
 The source code repository for Test::Stream can be found at
