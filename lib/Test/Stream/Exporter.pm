@@ -229,6 +229,37 @@ if the package has imported it.
 
 =back
 
+=head1 METHODS
+
+=over 4
+
+=item Test::Stream::Exporter->cleanup
+
+Remove the C<Exporter> utility functions from the package namespace.
+
+=back
+
+=head1 HOOKABLE METHODS
+
+The following methods are not defined by default, but if they are defined, will
+be called before/after importing is done.
+
+=over 4
+
+=item $package->before_import( $caller, \@args)
+
+Will be called C<before> the C<import> happens, with C<@args> being a user
+modifiable C<ARRAYREF> which can be used to filter or augment arguments passed
+to the primary C<export_to> logic.
+
+May return any scalar value, which will be passed to C<after_import> if
+defined.
+
+=item $package->after_import( $caller, $stash, @args )
+
+Will be called C<after> the C<import> happens, with C<$stash> being the return
+value of C<before_import>
+
 =head1 SOURCE
 
 The source code repository for Test::Stream can be found at
