@@ -229,6 +229,8 @@ F<http://github.com/Test-More/Test-Stream/>.
 
 =item Chad Granum E<lt>exodist@cpan.orgE<gt>
 
+=item Kent Fredric E<lt>kentnl@cpan.orgE<gt>
+
 =back
 
 =head1 COPYRIGHT
