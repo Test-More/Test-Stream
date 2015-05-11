@@ -75,7 +75,7 @@ sub export_to {
     }
 }
 
-sub cleanup {
+sub unimport {
     my $pkg = caller;
     package_purge_sym($pkg, map {(CODE => $_)} qw/export exports default_export default_exports/);
 }
@@ -233,9 +233,15 @@ if the package has imported it.
 
 =over 4
 
-=item Test::Stream::Exporter->cleanup
+=item Test::Stream::Exporter->unimport
 
 Remove the C<Exporter> utility functions from the package namespace.
+
+Recommended usage:
+
+  use Test::Stream::Exporter ...;
+  # declarative code here
+  no Test::Stream::Exporter;
 
 =back
 
@@ -278,6 +284,8 @@ F<http://github.com/Test-More/Test-Stream/>.
 =over 4
 
 =item Chad Granum E<lt>exodist@cpan.orgE<gt>
+
+=item Kent Fredric E<lt>kentnl@cpan.orgE<gt>
 
 =back
 

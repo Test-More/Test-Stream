@@ -29,7 +29,7 @@ BEGIN {
 
 use Test::Stream::Exporter;
 default_exports qw/get_tid USE_THREADS/;
-Test::Stream::Exporter->cleanup;
+no Test::Stream::Exporter;
 
 1;
 
@@ -103,6 +103,8 @@ F<http://github.com/Test-More/Test-Stream/>.
 =over 4
 
 =item Chad Granum E<lt>exodist@cpan.orgE<gt>
+
+=item Kent Fredric E<lt>kentnl@cpan.orgE<gt>
 
 =back
 

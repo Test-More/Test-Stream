@@ -14,7 +14,8 @@ sub OUT_TODO() { 2 }
 
 use Test::Stream::Exporter qw/exports export_to/;
 exports qw/OUT_STD OUT_ERR OUT_TODO/;
-Test::Stream::Exporter->cleanup;
+
+no Test::Stream::Exporter;
 
 sub init {
     my $self = shift;
@@ -216,6 +217,8 @@ F<http://github.com/Test-More/Test-Stream/>.
 =over 4
 
 =item Chad Granum E<lt>exodist@cpan.orgE<gt>
+
+=item Kent Fredric E<lt>kentnl@cpan.orgE<gt>
 
 =back
 

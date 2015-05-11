@@ -21,12 +21,16 @@ use Test::More;
 
     export '$export' => \$export;
 
-    Test::Stream::Exporter->cleanup;
+    no Test::Stream::Exporter;
+
+    sub export {
+      die "This is a custom sub";
+    }
 
     is($export,            'here', "still have an \$export var");
     is($main::export::xxx, 'here', "still have an \$export::* var");
 
-    ok(!__PACKAGE__->can($_), "removed $_\()") for qw/export default_export exports default_exports/;
+    ok(!__PACKAGE__->can($_), "removed $_\()") for qw/default_export exports default_exports/;
 }
 
 My::Exporter->import( '!x' );
@@ -75,5 +79,14 @@ is_deeply(
     },
     "Exports are what we expect"
 );
+
+my ($error, $return);
+{
+  local $@;
+  $return = eval { My::Exporter->export; 1 };
+  $error = $@;
+}
+ok( !$return, 'Custom fatal export sub died as expected');
+like( $error, qr/This is a custom sub/, 'Custom fatal export sub died as expected with the right message');
 
 done_testing;

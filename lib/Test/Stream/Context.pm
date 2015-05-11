@@ -27,7 +27,7 @@ my $NO_WAIT;
 
 use Test::Stream::Exporter qw/import export_to exports/;
 exports qw/TOP_HUB PUSH_HUB POP_HUB NEW_HUB CULL context/;
-Test::Stream::Exporter->cleanup();
+no Test::Stream::Exporter;
 
 # Set the exit status
 my ($PID, $TID) = ($$, get_tid());
@@ -563,6 +563,8 @@ F<http://github.com/Test-More/Test-Stream/>.
 =over 4
 
 =item Chad Granum E<lt>exodist@cpan.orgE<gt>
+
+=item Kent Fredric E<lt>kentnl@cpan.orgE<gt>
 
 =back
 
