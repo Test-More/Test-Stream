@@ -38,7 +38,7 @@ Test::Stream::Context->clear;
 
 my $three = tool(); $frame = [ __PACKAGE__, __FILE__, __LINE__, 'main::tool' ];
 my $snap = $three->snapshot;
-is_deeply($three, $snap, "Identical!");
+is_deeply({%$three, _no_dhooks => 1}, $snap, "Identical except for destroy hook toggle");
 ok($three != $snap, "Not the same instance (may share references)");
 
 # Hard Reset
@@ -132,6 +132,20 @@ my $dbg2 = tool()->debug;
 
 is($dbg1->todo, 'Here be dragons', "Got todo in context created with todo in place");
 is($dbg2->todo, undef, "no todo in context created after todo was removed");
+
+my $DESTROYED = 0;
+$ctx = tool();
+my $ref = $ctx->hub->context_destroy_hook(sub { $DESTROYED++ });
+ok(!$DESTROYED, "Hook not called yet");
+$ctx = undef;
+is($DESTROYED, 1, "Called once");
+$ctx = tool();
+$ctx = undef;
+is($DESTROYED, 2, "Called twice");
+$ctx = tool();
+$ctx->hub->remove_context_destroy_hook($ref);
+$ctx = undef;
+is($DESTROYED, 2, "Not called a third time");
 
 done_testing;
 

@@ -4,6 +4,7 @@ use warnings;
 
 use Scalar::Util qw/weaken/;
 
+use Test::Stream::Util qw/try/;
 use Test::Stream::Carp qw/confess croak/;
 use Test::Stream::Capabilities qw/CAN_FORK/;
 
@@ -154,7 +155,7 @@ sub POP_HUB {
 sub CULL { $_->cull for reverse @HUB_STACK }
 
 use Test::Stream::HashBase(
-    accessors => [qw/hub debug/],
+    accessors => [qw/hub debug _no_dhooks/],
 );
 
 sub init {
@@ -165,7 +166,7 @@ sub init {
         unless $_[0]->{+HUB};
 }
 
-sub snapshot { bless {%{$_[0]}}, __PACKAGE__ }
+sub snapshot { bless {%{$_[0]}, _NO_DHOOKS() => 1}, __PACKAGE__ }
 
 sub context(;$) {
     croak "context() called, but return value is ignored"
@@ -293,6 +294,23 @@ sub _parse_event {
     $LOADED{$event} = $pkg;
 
     return $pkg;
+}
+
+sub DESTROY {
+    my $hooks = $_[0]->{+HUB}->{Test::Stream::Hub::_CONTEXT_HOOKS()}
+        || return;
+
+    return if $_[0]->{+_NO_DHOOKS};
+
+    # We need a variable to close over.
+    my ($self) = @_;
+    for my $hook (@$hooks) {
+        # use try to ensure all hooks run even if one fails. 
+        # try also protects $@ and $! for us.
+        my ($ok, $err) = try { $hook->($self->snapshot) };
+        next if $ok;
+        warn $err;
+    }
 }
 
 1;

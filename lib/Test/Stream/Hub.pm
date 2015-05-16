@@ -17,6 +17,7 @@ use Test::Stream::HashBase(
         _mungers
         _listeners
         _follow_ups
+        _context_hooks
         _formatter
     }],
 );
@@ -165,6 +166,26 @@ sub follow_up {
 
     push @{$self->{+_FOLLOW_UPS}} => $sub;
 }
+
+sub context_destroy_hook {
+    my $self = shift;
+    my ($sub) = @_;
+
+    croak "context_destroy_hook only takes coderefs for arguments, got '$sub'"
+        unless ref $sub && ref $sub eq 'CODE';
+
+    push @{$self->{+_CONTEXT_HOOKS}} => $sub;
+
+    $sub; # Intentional return.
+}
+
+sub remove_context_destroy_hook {
+    my $self = shift;
+
+    my %subs = map {$_ => $_} @_;
+    @{$self->{+_CONTEXT_HOOKS}} = grep { !$subs{$_} == $_ } @{$self->{+_CONTEXT_HOOKS}};
+}
+
 
 sub send {
     my $self = shift;
@@ -546,6 +567,26 @@ codeblock will be a L<Test::Stream::DebugInfo> instance.
 
 follow_up subs are called only once, ether when done_testing is called, or in
 an END block.
+
+=item $ref = $hub->context_destroy_hook(sub { ... })
+
+Add a hook that is run every time a context is destroyed.
+
+    $hub->context_destroy_hook(sub {
+        my $ctx = shift;
+        print "Context was destroyed!\n";
+    });
+
+    my $ctx = context();
+
+    # This will trigger the hook
+    $ctx = undef;
+
+B<Note:> This sub is called from inside a DESTROY block, as such it is
+impossible to throw exceptions using die. These subs are subject to all the
+restrictions and gotchas as any DESTROY block.
+
+=item $hub->remove_context_destroy_hook($ref)
 
 =item $hub->cull()
 
