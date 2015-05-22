@@ -1,7 +1,6 @@
 use strict;
 use warnings;
 
-use Test::Stream;
 use Test::More;
 
 use ok 'Test::Stream::Event';
