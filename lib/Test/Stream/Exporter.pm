@@ -33,7 +33,6 @@ sub unimport {
             *{"$pkg\::$name"} = *GLOBCLONE{$slot} if defined *GLOBCLONE{$slot};
         }
     }
-
 }
 
 ###############
@@ -57,9 +56,13 @@ sub export_to {
     $imports = $meta->default unless $imports && @$imports;
 
     my $exports = $meta->exports;
-    for my $name (@$imports) {
-        my $ref = $exports->{$name}
-            || croak qq{"$name" is not exported by the $from module};
+    for my $arg (@$imports) {
+        my ($export, $name) = ($arg =~ m/^(\S+)\s*=\s*(\S+)$/);
+        $export ||= $arg;
+        $name   ||= $arg;
+
+        my $ref = $exports->{$export}
+            || croak qq{"$export" is not exported by the $from module};
 
         no strict 'refs';
         *{"$dest\::$name"} = $ref;
@@ -162,6 +165,20 @@ across L<Test::Stream> and friends.
     no Test::Stream::Exporter;
 
     ...;
+
+=head1 IMPORTING METHODS WITH ALTERNATE NAMES
+
+When you specify a sub to import you may postfix an equal sign and a name under
+which it should be imported. In a C<qw> quote you cannot use spaces as that
+would split it into 3 distinct strings. However with individual quoting spaces
+are allowed.
+
+    use Some::Exporter qw/an_export=new_name other_export=other_name/;
+
+or
+
+    use Some::Exporter 'an_export = new_name', 'other_export = other_name';
+
 
 =head1 CUSTOMIZING AN IMPORT METHOD
 
