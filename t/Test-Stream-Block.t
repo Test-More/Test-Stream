@@ -1,9 +1,9 @@
 use strict;
 use warnings;
 
-use Test::More;
+use Test::Stream;
 
-use ok 'Test::Stream::Block';
+use Test::Stream::Block;
 
 our %BLOCKS;
 our %STARTS;

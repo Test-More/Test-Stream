@@ -1,9 +1,9 @@
 use strict;
 use warnings;
 
-use Test::More;
+use Test::Stream;
 
-use ok 'Test::Stream::Event';
+use Test::Stream::Event;
 
 can_ok('Test::Stream::Event', qw/debug nested/);
 
