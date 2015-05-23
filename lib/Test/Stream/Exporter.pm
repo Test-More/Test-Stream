@@ -166,6 +166,10 @@ across L<Test::Stream> and friends.
 
 =head1 IMPORTING METHODS WITH ALTERNATE NAMES
 
+B<Note:> If you import L<Test::Stream::Exporter> functions under alternative
+names, C<no Test::Stream::Exporter;> will not find and remove them like it
+normally would.
+
 When you specify a sub to import you may postfix an equal sign and a name under
 which it should be imported. In a C<qw> quote you cannot use spaces as that
 would split it into 3 distinct strings. However with individual quoting spaces
@@ -176,7 +180,6 @@ are allowed.
 or
 
     use Some::Exporter 'an_export = new_name', 'other_export = other_name';
-
 
 =head1 CUSTOMIZING AN IMPORT METHOD
 
