@@ -1,15 +1,15 @@
 use strict;
 use warnings;
 
-use Test::More;
+use Test::Stream;
+use Test::Stream::Interceptor qw/dies warns/;
 
 use Test::Stream::Context qw/context TOP_HUB/;
 
 can_ok(__PACKAGE__, qw/context/);
 
-ok(!eval { context(); 1 }, "Thre Exception");
-my $error = $@;
-my $exception = "context() called, but return value is ignored at " . __FILE__ . ' line ' . (__LINE__ - 2);
+my $error = dies { context(); 1 };
+my $exception = "context() called, but return value is ignored at " . __FILE__ . ' line ' . (__LINE__ - 1);
 like($error, qr/^\Q$exception\E/, "Got the exception" );
 
 my $ref;
@@ -195,7 +195,3 @@ is_deeply(
 );
 
 done_testing;
-
-# This is necessary cause we have a root hub that will set the exit code to 255
-# since no tests were run for it :-)
-TOP_HUB->set_no_ending(1);
