@@ -168,7 +168,7 @@ sub init {
 
 sub snapshot { bless {%{$_[0]}}, __PACKAGE__ }
 
-sub context(;$) {
+sub context {
     croak "context() called, but return value is ignored"
         unless defined wantarray;
 
@@ -176,11 +176,13 @@ sub context(;$) {
     my $current = $CONTEXTS{$hub->hid};
     return $current if $current;
 
+    my %params = (level => 0, @_);
+
     # This is a good spot to poll for pending IPC results. This actually has
     # nothing to do with getting a context.
     $hub->cull;
 
-    my $level = 1 + ($_[0] || 0);
+    my $level = 1 + $params{level};
     my ($pkg, $file, $line, $sub) = caller($level);
     confess "Could not find context at depth $level"
         unless $pkg;
@@ -199,6 +201,9 @@ sub context(;$) {
     );
 
     weaken($CONTEXTS{$hub->hid} = $current);
+
+    $params{init}->($current) if $params{init};
+
     return $current;
 }
 
