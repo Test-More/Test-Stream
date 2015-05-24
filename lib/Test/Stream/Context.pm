@@ -71,6 +71,8 @@ END {
         }
     }
 
+    @HUB_STACK = ();
+
     $exit = 255 if $exit > 255;
 
     $? = $exit;
