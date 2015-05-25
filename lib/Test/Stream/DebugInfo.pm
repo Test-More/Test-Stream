@@ -46,6 +46,12 @@ sub file    { $_[0]->{+FRAME}->[1] }
 sub line    { $_[0]->{+FRAME}->[2] }
 sub subname { $_[0]->{+FRAME}->[3] }
 
+sub no_fail {
+    my $self = shift;
+    return defined($self->{+TODO})
+        || defined($self->{+SKIP});
+}
+
 1;
 
 __END__

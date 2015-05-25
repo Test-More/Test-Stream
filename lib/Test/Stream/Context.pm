@@ -170,7 +170,7 @@ sub init {
 
 sub snapshot { bless {%{$_[0]}}, __PACKAGE__ }
 
-sub context(;$) {
+sub context {
     croak "context() called, but return value is ignored"
         unless defined wantarray;
 
@@ -178,11 +178,13 @@ sub context(;$) {
     my $current = $CONTEXTS{$hub->hid};
     return $current if $current;
 
+    my %params = (level => 0, @_);
+
     # This is a good spot to poll for pending IPC results. This actually has
     # nothing to do with getting a context.
     $hub->cull;
 
-    my $level = 1 + ($_[0] || 0);
+    my $level = 1 + $params{level};
     my ($pkg, $file, $line, $sub) = caller($level);
     confess "Could not find context at depth $level"
         unless $pkg;
@@ -201,6 +203,9 @@ sub context(;$) {
     );
 
     weaken($CONTEXTS{$hub->hid} = $current);
+
+    $params{init}->($current) if $params{init};
+
     return $current;
 }
 
@@ -250,7 +255,21 @@ sub build_event {
 sub ok {
     my $self = shift;
     my ($pass, $name, $diag) = @_;
-    $self->send_event('Ok', pass => $pass, name => $name, diag => $diag);
+
+    my $e = $self->build_event(
+        'Ok',
+        pass => $pass,
+        name => $name,
+    );
+
+    return $self->hub->send($e) if $pass;
+
+    $diag ||= [];
+    unshift @$diag => $e->default_diag;
+
+    $e->set_diag($diag);
+
+    $self->hub->send($e);
 }
 
 sub note {
@@ -535,7 +554,9 @@ are passed to the event constructor.
 
 =item $e = $ctx->ok($pass, $name, \@diag)
 
-Shortcut for sending 'Ok' events.
+Shortcut for sending 'Ok' events. This shortcut will add your diagnostics ONLY
+in the event of a failure. This shortcut will also take care of adding the
+default failure diagnostics for you.
 
 =item $e = $ctx->note($message)
 

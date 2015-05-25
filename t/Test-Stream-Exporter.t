@@ -1,12 +1,12 @@
 use strict;
 use warnings;
 
-use Test::More;
+use Test::Stream;
 
 {
     package My::Exporter;
     use Test::Stream::Exporter;
-    use Test::More;
+    use Test::Stream;
     use Carp qw/croak/;
 
     export         a => sub { 'a' };
@@ -64,5 +64,9 @@ my ($error, $return);
 }
 ok( !$return, 'Custom fatal export sub died as expected');
 like( $error, qr/This is a custom sub/, 'Custom fatal export sub died as expected with the right message');
+
+My::Exporter->import(qw/a=aaa/, 'a = xxx');
+is(aaa(), 'a', "imported under an alternative name 1");
+is(xxx(), 'a', "imported under an alternative name 2");
 
 done_testing;

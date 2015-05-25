@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More;
+use Test::Stream;
 
 use Test::Stream::Context qw/context TOP_HUB/;
 
@@ -132,6 +132,21 @@ my $dbg2 = tool()->debug;
 
 is($dbg1->todo, 'Here be dragons', "Got todo in context created with todo in place");
 is($dbg2->todo, undef, "no todo in context created after todo was removed");
+
+Test::Stream::Context->clear;
+
+my $called = 0;
+$ctx = context(level => -1, init => sub { $called++ });
+is($called, 1, "Called context init hook");
+
+my $ctx2 = context(level => -1, init => sub { $called++ });
+is($called, 1, "Did not call init hook again");
+
+$ctx = undef;
+$ctx2 = undef;
+
+$ctx = context(level => -1, init => sub { $called++ });
+is($called, 2, "Called context init hook again");
 
 done_testing;
 
