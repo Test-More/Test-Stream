@@ -9,12 +9,14 @@ sub done_testing {
 
     die "Test Already ended!" if $state->ended;
     $ctx->hub->finalize($ctx->debug);
+    $ctx->release;
 }
 
 sub ok($;$) {
     my ($bool, $name) = @_;
     my $ctx = context();
     $ctx->ok($bool, $name);
+    $ctx->release;
 }
 
 ok(1, "First");
