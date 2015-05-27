@@ -7,6 +7,10 @@ use Carp qw/confess carp longmess/;
 
 my @DRIVERS;
 
+# If Context is already loaded we should init the top hub before anything forks
+# or threads.
+Test::Stream::Context::TOP_HUB() if $INC{'Test/Stream/Context.pm'};
+
 sub drivers {
     unless(@DRIVERS) {
         # Fallback to files

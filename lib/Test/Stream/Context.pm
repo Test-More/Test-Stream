@@ -78,6 +78,10 @@ END {
     $? = $exit;
 }
 
+# If IPC is already loaded we should create the TOP HUB now before forking or
+# threading occur.
+TOP_HUB() if $INC{'Test/Stream/IPC.pm'};
+
 sub NO_WAIT { ($NO_WAIT) = @_ if @_; $NO_WAIT }
 
 sub IPC_WAIT {
