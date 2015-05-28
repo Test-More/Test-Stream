@@ -1,8 +1,10 @@
 package Test::Stream;
 use strict;
 use warnings;
+use vars qw/$VERSION/;
 
-$Test::Stream::VERSION = '0.000001';
+$Test::Stream::VERSION = '1.302001';
+$VERSION = eval $VERSION;
 
 use Scalar::Util qw/reftype/;
 use Carp qw/croak/;
