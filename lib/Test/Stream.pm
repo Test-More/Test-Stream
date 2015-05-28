@@ -658,6 +658,17 @@ C<plan()> now only takes the expected number of tests. If you want to skip all
 the tests use C<skip_all()>. There is no way to set C<'no plan'>, use
 C<done_testing()> instead.
 
+=item API Change: subtest is in a different library
+
+Look at L<Test::Stream::Subtest> if you want to use subtests.
+
+=item API Change: thread support is not automatic
+
+In Test::More, loading threads before loading Test::More would enable threading
+support. This does not happen with Test::Stream. If you want concurrency
+support in Test::Stream (threads or forking) you need to ask for it by loading
+L<Test::Stream::IPC>.
+
 =item API Change: no $TODO variable
 
 =item API Added: $todo = todo($reason)
@@ -718,6 +729,29 @@ This method was copied in an API-incompatible way from L<Test::Most>. This
 created an incompatability issue between the 2 libraries and made a real mess
 of things. There is value in a tool like this, but if it is added it will be
 added with a new name to avoid conflicts.
+
+=back
+
+=head1 SEE ALSO
+
+=over 4
+
+=item L<Test::Stream::Subtest>
+
+Subtest support
+
+=item L<Test::Stream::Intercept>
+
+Tools for intercepting events, exceptions, warnings, etc.
+
+=item L<Test::Stream::Tester>
+
+Tools for testing your test tools
+
+=item L<Test::Stream::IPC>
+
+Load this to add concurrency support. This adds support for forking and
+threading.
 
 =back
 
