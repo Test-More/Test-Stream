@@ -7,53 +7,58 @@ use Test::Stream::Context qw/context TOP_HUB/;
 
 can_ok(__PACKAGE__, qw/context/);
 
+ok(!eval { context(); 1 }, "Thre Exception");
+my $error = $@;
+my $exception = "context() called, but return value is ignored at " . __FILE__ . ' line ' . (__LINE__ - 2);
+like($error, qr/^\Q$exception\E/, "Got the exception" );
+
+my $ref;
 my $frame;
+sub wrap(&) {
+    my $ctx = context();
+    my ($pkg, $file, $line, $sub) = caller(0);
+    $frame = [$pkg, $file, $line, $sub];
 
-# Ironically, this is a bad idea in production.
-sub tool { context() };
+    $_[0]->($ctx);
 
-ok(!eval { context(); return; }, "Fails in void context");
-my $exception = "context() called, but return value is ignored at " . __FILE__ . ' line ' . (__LINE__ - 1);
-like($@, qr/^\Q$exception\E/, "Got the exception" );
+    $ref = "$ctx";
 
-my $one = tool()->snapshot; $frame = [ __PACKAGE__, __FILE__, __LINE__, 'main::tool' ];
+    $ctx->release;
+}
 
-my $two = tool(); $frame = [ __PACKAGE__, __FILE__, __LINE__, 'main::tool' ];
-ok($two->hub, "Got a hub");
-isa_ok($two->hub, 'Test::Stream::Hub');
-is_deeply($two->debug->frame, $frame, "Found place to report errors");
+wrap {
+    my $ctx = shift;
+    ok($ctx->hub, "got hub");
+    isa_ok($ctx->hub, 'Test::Stream::Hub');
+    is_deeply($ctx->debug->frame, $frame, "Found place to report errors");
+};
 
-# Find existing instance
-ok($one != $two, "2 different instances");
-ok($two == tool(), "context() returns the same instance again");
+wrap {
+    my $ctx = shift;
+    isnt("$ctx", $ref, "Got a new context");
+    my $new = context();
+    ok($ctx == $new, "Additional call to context gets same instance");
+    is_deeply($ctx->debug->frame, $frame, "Found place to report errors");
+    $new->release;
+};
 
-# Test undef/collection
-my $addr = "$two";
-$two = undef;
-$two = tool();
-ok("$two" ne $addr, "Got a new context after old was undef'd");
+wrap {
+    my $ctx = shift;
+    my $snap = $ctx->snapshot;
+    is_deeply($ctx, $snap, "snapshot is identical");
+    ok($ctx != $snap, "snapshot is a new instance");
+};
 
-# Hard Reset
-Test::Stream::Context->clear;
-
-my $three = tool(); $frame = [ __PACKAGE__, __FILE__, __LINE__, 'main::tool' ];
-my $snap = $three->snapshot;
-is_deeply($three, $snap, "Identical!");
-ok($three != $snap, "Not the same instance (may share references)");
-
-# Hard Reset
-$one = undef;
-$two = undef;
-$three = undef;
-Test::Stream::Context->clear;
-
-my $ctx;
+my $end_ctx;
 { # Simulate an END block...
     local *END = sub { local *__ANON__ = 'END'; context() };
-    $ctx = END(); $frame = [ __PACKAGE__, __FILE__, __LINE__, 'main::END' ];
+    my $ctx = END(); $frame = [ __PACKAGE__, __FILE__, __LINE__, 'main::END' ];
+    $end_ctx = $ctx->snapshot;
+    $ctx->release;
 }
-is_deeply( $ctx->debug->frame, $frame, 'context is ok in an end block');
+is_deeply( $end_ctx->debug->frame, $frame, 'context is ok in an end block');
 
+# Test event generation
 {
     package My::Formatter;
 
@@ -70,7 +75,7 @@ my $hub = Test::Stream::Hub->new(
 my $dbg = Test::Stream::DebugInfo->new(
     frame => [ 'Foo::Bar', 'foo_bar.t', 42, 'Foo::Bar::baz' ],
 );
-$ctx = Test::Stream::Context->new(
+my $ctx = Test::Stream::Context->new(
     debug => $dbg,
     hub   => $hub,
 );
@@ -124,14 +129,70 @@ is(@$events, 1, "1 event");
 is_deeply($events, [$e], "Hub saw the event");
 pop @$events;
 
-Test::Stream::Context->clear;
+# Test todo
+my ($dbg1, $dbg2);
 my $todo = TOP_HUB->set_todo("Here be dragons");
-my $dbg1 = tool()->debug;
+wrap { $dbg1 = shift->debug };
 $todo = undef;
-my $dbg2 = tool()->debug;
+wrap { $dbg2 = shift->debug };
 
 is($dbg1->todo, 'Here be dragons', "Got todo in context created with todo in place");
 is($dbg2->todo, undef, "no todo in context created after todo was removed");
+
+
+# Test hooks
+
+my @hooks;
+$hub = TOP_HUB();
+my $ref1 = $hub->add_context_init(sub { push @hooks => 'hub_init' });
+my $ref2 = $hub->add_context_release(sub { push @hooks => 'hub_release' });
+
+sub {
+    push @hooks => 'start';
+    my $ctx = context(on_init => sub { push @hooks => 'ctx_init' }, on_release => sub { push @hooks => 'ctx_release' });
+    push @hooks => 'deep';
+    my $ctx2 = sub {
+        context(on_init => sub { push @hooks => 'ctx_init_deep' }, on_release => sub { push @hooks => 'ctx_release_deep' });
+    }->();
+    push @hooks => 'release_deep';
+    $ctx2->release;
+    push @hooks => 'release_parent';
+    $ctx->release;
+    push @hooks => 'released_all';
+
+    push @hooks => 'new';
+    $ctx = context(on_init => sub { push @hooks => 'ctx_init2' }, on_release => sub { push @hooks => 'ctx_release2' });
+    push @hooks => 'release_new';
+    $ctx->release;
+    push @hooks => 'done';
+}->();
+
+$hub->remove_context_init($ref1);
+$hub->remove_context_release($ref2);
+
+is_deeply(
+    \@hooks,
+    [qw{
+        start
+        ctx_init
+        hub_init
+        deep
+        release_deep
+        release_parent
+        ctx_release
+        ctx_release_deep
+        hub_release
+        released_all
+        new
+        ctx_init2
+        hub_init
+        release_new
+        ctx_release2
+        hub_release
+        done
+    }],
+    "Got all hook in correct order"
+);
 
 done_testing;
 
