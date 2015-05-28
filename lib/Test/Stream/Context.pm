@@ -59,8 +59,12 @@ END {
     my $hub_exit = 0;
     for my $hub (reverse @HUB_STACK) {
         next if $hub->no_ending;
-        next if $hub->state->ended;
-        $hub_exit += $hub->finalize($dbg, 1);
+        if ($hub->state->ended) {
+            $hub_exit += $hub->state->failed;
+        }
+        else {
+            $hub_exit += $hub->finalize($dbg, 1);
+        }
     }
     $exit ||= $hub_exit;
 
@@ -69,6 +73,11 @@ END {
         for my $ctx (@unreleased) {
             $ctx->debug->alert("context object was never released! This means a testing tool is behaving very badly");
         }
+    }
+
+    unless (@HUB_STACK) {
+        print STDERR "No tests were run!\n";
+        $exit = 255;
     }
 
     @HUB_STACK = ();
