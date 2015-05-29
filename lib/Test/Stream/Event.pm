@@ -28,7 +28,9 @@ sub init {
     confess("No debug info provided!") unless $_[0]->{+DEBUG};
 }
 
-sub update_state { }
+sub update_state { 
+    # left blank as there are many events that do not require state changes.
+}
 
 sub terminate { undef }
 
