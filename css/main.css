@@ -446,3 +446,25 @@ table#debugger_state tr.active.child_2 {
     background: #AAFFAA !important;
 }
 
+dl.descriptive_points dt {
+    font-weight: bold;
+}
+
+dl.descriptive_points dd {
+    margin-bottom: 12px;
+}
+
+ul.horizontal_list {
+    overflow: hidden;
+    list-style: none;
+}
+
+ul.horizontal_list li {
+    float: left;
+    margin-left: 40px;
+}
+
+table.benchmark td, table.benchmark th {
+    padding-left: 8px;
+    padding-right: 8px;
+}
