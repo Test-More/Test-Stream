@@ -1,0 +1,202 @@
+<dl class="listnav">
+    <dt id="performance">Performance</dt>
+    <dd>
+        <h2>Some Quick Numbers</h2>
+
+        <i>Note: These numbers were simply running the profiler, or running the
+        script with time, they are not a scientific study and your mileage may
+        vary.</i>
+
+        <table>
+            <tr><th>Script</th><th>Profile time</th><th>Unprofiled time</th></tr>
+            <tr>
+                <td>Test-More w/o Test::Stream</td>
+                <td>19.4s</td><td>4.88s</td>
+            </tr>
+            <tr>
+                <td>Test-Stream</td>
+                <td>12.4s</td><td>3.48s</td>
+            </tr>
+            <tr>
+                <td>Test-Stream w/ IPC</td>
+                <td>19.8s</td><td>5.35s</td>
+            </tr>
+            <tr>
+                <td>Test-More w/ Test::Stream</td>
+                <td>20.1s</td><td>5.64s</td>
+            </tr>
+        </table>
+    </dd>
+
+    <dt id="concurrency">Concurrency</dt>
+    <dd>
+        <h2>Concurrency is a solved problem</h2>
+        Test::Stream has support for both threading and forking.
+
+        <script class="code">
+            use Test::Stream;
+            use Test::Stream::IPC; # Turn on concurrency
+
+            ...
+        </script>
+
+        <ul>
+            <li>Only on when requested (peformance reasons)</li>
+            <li>Must be turned on prior to running any tests</li>
+            <li>Pluggable IPC drivers (currently one driver)</li>
+            <li>Subtests support is sane</li>
+            <li>Protections against common foot-shooting behaviors</li>
+        </ul>
+
+        The default IPC driver uses a temporary directory and files for events
+        that need to pass between processes or threads. File names describe the
+        events destination so that they can be picked up by the correct
+        process/thread.
+    </dd>
+
+    <dt id="formatters">Formatters</dt>
+    <dd>
+        <h2>Formatters, your output your way.</h2>
+        Formatters are responsible for taking events and converting them to
+        your desired output format. The default formatter is a TAP formatter
+        that is compatible with Test-Builder.
+
+        <ul>
+            <li>TAP is the default</li>
+            <li>Only one formatter at a time</li>
+            <li>Formatter can be any object with a write($event, $num) method</li>
+        </ul>
+    </dd>
+
+    <dt id="intercepting">Intercepting</dt>
+    <dd>
+        Normally all Test-Stream based tools send all events to a single hub.
+        This is controlled by the context object. Under the hood there is
+        actually a stack of hubs. You can push a new hub to the top of the
+        stack, where it will then recieve all events until it is popped off.
+
+        <p>
+
+        There is a tool in Test::Stream::Interceptor that lets you temporarily
+        grab all events, this is used for two things:
+        
+        <ol>
+            <li>It makes it easy to capture events when you want to test your test tools.</li>
+            <li>This is how subtests are implemented</li>
+        </ol>
+    </dd>
+
+    <dt id="hooks">Hooks</dt>
+    <dd>
+        <dl class="sub_list">
+            <dt id="munge">munge</dt>
+            <dd>
+                This hook can be used to modify, or even destroy events before
+                they effect the test state or go to the formatter. You can add
+                as many callbacks as you want.
+
+                <script class="code">
+                    $hub->munge(sub {
+                        ($hub, $event) = @_;
+                        $event->do_something;
+                    });
+
+                    $hub->munge(sub {
+                        ($hub, $event) = @_;
+                        $event->also_do_this;
+                    });
+                </script>
+            </dd>
+
+            <dt id="listen">listen</dt>
+            <dd>
+                This hook can be used to see events after they have effected
+                the state and been seen by the formatter. You can add as many
+                callbacks as you want. It is best not to modify the event here.
+
+                <script class="code">
+                    $hub->listen(sub {
+                        ($hub, $event) = @_;
+                        ... record event or whatever ...
+                    });
+                </script>
+            </dd>
+
+            <dt id="follow_up">follow_up</dt>
+            <dd>
+                Callbacks added for this hook are called when the hub is
+                finalized. Finalization typically happens when someone uses
+                done_testing. The callbacks are run BEFORE done_testing does
+                its checks or final plan.
+
+                <script class="code">
+                    $hub->follow_up(sub {
+                        my ($dbg, $hub) = @_;
+
+                        ok(!did_bad_thing(), "bad thing didn't happen while tests were running.");
+                    });
+                </script>
+            </dd>
+
+            <dt id="context_init">context_init</dt>
+            <dd>
+                This hook can be used to add behaviors when a context is
+                generated for the hub. This will trigger only when the context
+                is created, not when tools find an already generated context.
+                It will not effect contexts generated for other hubs.
+
+                <script class="code">
+                    $hub->add_context_init(sub {
+                        my $ctx = shift;
+                        ...
+                    });
+                </script>
+            </dd>
+
+            <dt id="context_release">context_release</dt>
+            <dd>
+                This hook can be used to add behaviors when a context for the
+                hub is released. This only fires when the last reference to the
+                context is released. It will not trigger for contexts generated
+                for other hubs.
+
+                <script class="code">
+                    $hub->add_context_release(sub {
+                        my $ctx_clone = shift;
+                        ...
+                    });
+                </script>
+            </dd>
+
+            <dt id="on_init">on_init</dt>
+            <dd>
+                This is a callback specified when you obtain a context. This
+                callback will only trigger if a new context is generated by
+                your call to context(). It will not trigger if there is already
+                an active context.
+
+                <script class="code">
+                    my $ctx = context(on_init => sub {
+                        my $ctx = shift;
+                        ...
+                    });
+                </script>
+            </dd>
+
+            <dt id="on_release">on_release</dt>
+            <dd>
+                This is a callback specified when you obtain a context. This
+                callback will be ADDED to the context you get back regardless
+                of who created it. When the final reference to the context is
+                released they will ALL trigger.
+
+                <script class="code">
+                    my $ctx = context(on_release => sub {
+                        my $ctx_clone = shift;
+                        ...
+                    });
+                </script>
+            </dd>
+        </dl>
+    </dd>
+</dl>
