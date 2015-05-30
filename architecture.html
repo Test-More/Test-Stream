@@ -1,0 +1,101 @@
+<dl class="listnav">
+    <dt id="philosophy">Philosophy</dt>
+    <dd>
+        <h2>Philosophy behind the Test-Stream architecture</h2>
+        <ul>
+            <li>Never assume you know what people will need.</li>
+            <li>Provide tools to build solutions, not prepackages solutions.</li>
+            <li>Keep the interface as simple as possible.</li>
+            <li>Hooks are better than predictions.</li>
+            <li>Avoid lock-in to limited ideas.</li>
+            <li>Be strict with new features, relax them if necessary.</li>
+        </ul>
+
+        Predicting what people will need adds complexity. Instead we provide
+        hooks that allow people to meet their own needs. IF people request a
+        hook into something, and adding a hook is not overly complicated or
+        expensive, we will add it.
+    </dd>
+
+    <dt id="events">Events</dt>
+    <dd>
+        <h2>Test-Stream is an event driven system</h2>
+
+        Instead of assuming people want to take a limited set of actions that
+        always boil down to TAP, Test::Stream uses an extendable event system.
+
+        <ul>
+            <li>Test tools are event producers</li>
+            <li>Test-Stream routes the events</li>
+            <li>Formatters turn the events into TAP, or other formats as needed</li>
+            <li>There are several hooks in the event pipeline</li>
+        </ul>
+
+        <p>
+
+        All the actions you know and love from Test-Builder are now proper
+        event objects:
+        <ul class="horizontal_list">
+            <li>Ok</li>
+            <li>Diag</li>
+            <li>Note</li>
+            <li>Plan</li>
+            <li>Bail</li>
+            <li>Subtest</li>
+        </ul>
+        You can also add your own event types as needed!
+    </dd>
+
+    <dt id="hubs">Hubs</dt>
+    <dd>
+        <h2>Hubs route events while maintaining state</h2>
+
+        The hub is the component of Test-Stream that recieves events, processes
+        them, and send them to the formatter.
+
+        <ul>
+            <li>Test state is updated as events pass through the hub.</li>
+            <li>The hub provides hooks to manipulate events.</li>
+            <li>The hub handles IPC for events in concurrent testing.</li>
+            <li>Not a singleton, there can be several hubs at any given time.</li>
+        </ul>
+
+        The hub package is as simple as it can be. Keeping hubs simple is
+        essential for performance.
+    </dd>
+
+    <dt id="contexts">Contexts</dt>
+    <dd>
+        <h2>Context, where everything comes together</h2>
+
+        Nearly any interaction you will have with Test-Stream starts by
+        requesting the context. The context does 3 essential things for you:
+
+        <ul>
+            <li>Tell you where errors should report to (file + line)</li>
+            <li>Tell you which hub should get the events you generate</li>
+            <li>Interface for generating events</li>
+        </ul>
+
+        The first tool to request a context will generate a new one. When the
+        tool is done it releases the context and it is destroyed. If another
+        tool tries to obtain a context before the first tool releases, it will
+        get the one already created by the first tool.
+
+        <script class="code">
+            sub my_ok {
+                my $ctx = context();    # Get or create the context
+                $ctx->note(             # Use the context to send an event
+                    "Ok was wrapped!"
+                );
+
+                ok(@_);                 # ok() will find the context we just created
+                $ctx->release;          # Never skip this step!
+            }
+
+            my_ok(1);                   # New context
+            ok(1);                      # New context
+            my_ok(1);                   # New context
+        </script>
+    </dd>
+</dl>
