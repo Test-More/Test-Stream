@@ -28,6 +28,44 @@
         </table>
     </dd>
 
+    <dt id="compatibility">Compatibility</dt>
+    <dd>
+        <h2>Compatibility between Test-Stream and Test-Builder</h2>
+
+        Test::Builder is being re-worked to use Test::Stream under the hood. In
+        theory this should make all tools compatible whichever system they use.
+        In practice there are some limitations to this.
+
+        <dl>
+            <dt>Monkeypatching</dt>
+            <dd>
+                Tools that monkeypatch Test::Builder, or Test::Builder based
+                tools (like Test::More) will only effect other tools that use
+                Test::Builder. If they monekypatch by replacing instead of
+                wrapping then they may break completely.
+            </dd>
+
+            <dt>Replacing the singleton</dt>
+            <dd>
+                Tools that replace the Test::Builder singleton have the same
+                problem as tools that monkeypatch. Only other tools that use
+                Test::Builder will be effected. There is also the risk of
+                breaking everything if the replacement copied code instead of
+                wrapping it.
+            </dd>
+
+            <dt>Direct object access</dt>
+            <dd>
+                There is no support for directly accessing hash elements in the
+                Test::Builder singleton. These elements have mostly gone away
+                as they are now part of other modules.
+            </dd>
+        </dl>
+
+        All *official* and documented Test::Builder API components should
+        continue to work as expected.
+    </dd>
+
     <dt id="concurrency">Concurrency</dt>
     <dd>
         <h2>Concurrency is a solved problem</h2>
@@ -79,7 +117,7 @@
 
         There is a tool in Test::Stream::Interceptor that lets you temporarily
         grab all events, this is used for two things:
-        
+
         <ol>
             <li>It makes it easy to capture events when you want to test your test tools.</li>
             <li>This is how subtests are implemented</li>
