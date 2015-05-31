@@ -37,7 +37,7 @@ $( function() {
         $( page[0] ).trigger( 'click' )
     }
     else {
-        $( '#fennec' ).trigger( 'click' )
+        $( '#justification' ).trigger( 'click' )
     }
 
     var navstate = 1;
@@ -72,7 +72,7 @@ function build_content( data ) {
     var subnav = $( 'ul#main_subnav' );
 
     var hash = window.location.hash;
-    if ( !hash ) hash = '#fennec';
+    if ( !hash ) hash = '#justification';
     var nav = hash.split('-');
 
     var new_stuff = $( '<div></div>' );
@@ -260,7 +260,7 @@ function build_sub_list( pid, list ) {
     var subnav = $( '<ul id="SN-' + pid + '" style="display: none;" class="second_subnav listnav"></ul>' );
 
     var hash = window.location.hash;
-    if ( !hash ) hash = '#fennec';
+    if ( !hash ) hash = '#justification';
     var nav = hash.split('-');
 
     list.find( 'dt' ).each( function() {
