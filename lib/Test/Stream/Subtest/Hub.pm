@@ -1,15 +1,28 @@
-package Test::Stream::Carp;
+package Test::Stream::Subtest::Hub;
 use strict;
 use warnings;
 
-use Test::Stream::Exporter;
+use Test::Stream::Hub;
+use Test::Stream::HashBase(
+    base => 'Test::Stream::Hub',
+    accessors => [qw/nested bailed_out exit_code/],
+);
 
-export croak   => sub { require Carp; goto &Carp::croak };
-export confess => sub { require Carp; goto &Carp::confess };
-export cluck   => sub { require Carp; goto &Carp::cluck };
-export carp    => sub { require Carp; goto &Carp::carp };
+sub process {
+    my $self = shift;
+    my ($e) = @_;
+    $e->set_nested($self->nested);
+    $self->set_bailed_out($e) if $e->isa('Test::Stream::Event::Bail');
+    $self->SUPER::process($e);
+}
 
-no Test::Stream::Exporter;
+sub terminate {
+    my $self = shift;
+    my ($code) = @_;
+    $self->set_exit_code($code);
+    no warnings 'exiting';
+    last TS_SUBTEST_WRAPPER;
+}
 
 1;
 
@@ -21,7 +34,7 @@ __END__
 
 =head1 NAME
 
-Test::Stream::Carp - Delayed Carp loader.
+Test::Stream::Subtest::Hub - Hub used by subtests
 
 =head1 EXPERIMENTAL CODE WARNING
 
@@ -37,25 +50,7 @@ experimental phase is over.
 
 =head1 DESCRIPTION
 
-Use this package instead of L<Carp> to avoid loading L<Carp> until absolutely
-necessary. This is used instead of Carp in L<Test::Stream> in order to avoid
-loading modules that packages you test may need to load themselves.
-
-=head1 SUPPORTED EXPORTS
-
-See L<Carp> for details on each of these functions.
-
-=over 4
-
-=item croak
-
-=item confess
-
-=item cluck
-
-=item carp
-
-=back
+Subtests make use of this hub to route events.
 
 =head1 SOURCE
 
@@ -75,8 +70,6 @@ F<http://github.com/Test-More/Test-Stream/>.
 =over 4
 
 =item Chad Granum E<lt>exodist@cpan.orgE<gt>
-
-=item Kent Fredric E<lt>kentnl@cpan.orgE<gt>
 
 =back
 

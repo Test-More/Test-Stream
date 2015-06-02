@@ -1,14 +1,14 @@
 use strict;
 use warnings;
 
-use Test::More;
+use Test::Stream;
 
-use ok 'Test::Stream::Util', qw{
-    try protect spoof
+use Test::Stream::Util qw{
+    try protect
 };
 
 can_ok(__PACKAGE__, qw{
-    try protect spoof
+    try protect
 });
 
 $! = 100;
@@ -25,9 +25,5 @@ ok(!$ok, "cought exception");
 like( $err, qr/xxx/, "expected exception");
 is($@, 'foo', '$@ is saved');
 ok($! == 100, "\$! did not change");
-
-my ($ret, $e) = spoof ["The::Moon", "Moon.pm", 11] => "die 'xxx' . __PACKAGE__";
-ok(!$ret, "Failed eval");
-like( $e, qr/^xxxThe::Moon at Moon\.pm line 11\.?/, "Used correct package, file, and line");
 
 done_testing;

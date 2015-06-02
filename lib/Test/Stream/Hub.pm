@@ -2,9 +2,9 @@ package Test::Stream::Hub;
 use strict;
 use warnings;
 
-use Test::Stream::Carp qw/carp croak/;
+use Carp qw/carp croak/;
 use Test::Stream::State;
-use Test::Stream::Threads;
+use Test::Stream::Util qw/get_tid USE_THREADS/;
 
 use Scalar::Util qw/weaken/;
 
@@ -18,6 +18,8 @@ use Test::Stream::HashBase(
         _listeners
         _follow_ups
         _formatter
+        _context_init
+        _context_release
     }],
 );
 
@@ -164,6 +166,42 @@ sub follow_up {
         unless ref $sub && ref $sub eq 'CODE';
 
     push @{$self->{+_FOLLOW_UPS}} => $sub;
+}
+
+sub add_context_init {
+    my $self = shift;
+    my ($sub) = @_;
+
+    croak "add_context_init only takes coderefs for arguments, got '$sub'"
+        unless ref $sub && ref $sub eq 'CODE';
+
+    push @{$self->{+_CONTEXT_INIT}} => $sub;
+
+    $sub; # Intentional return.
+}
+
+sub remove_context_init {
+    my $self = shift;
+    my %subs = map {$_ => $_} @_;
+    @{$self->{+_CONTEXT_INIT}} = grep { !$subs{$_} == $_ } @{$self->{+_CONTEXT_INIT}};
+}
+
+sub add_context_release {
+    my $self = shift;
+    my ($sub) = @_;
+
+    croak "add_context_release only takes coderefs for arguments, got '$sub'"
+        unless ref $sub && ref $sub eq 'CODE';
+
+    push @{$self->{+_CONTEXT_RELEASE}} => $sub;
+
+    $sub; # Intentional return.
+}
+
+sub remove_context_release {
+    my $self = shift;
+    my %subs = map {$_ => $_} @_;
+    @{$self->{+_CONTEXT_RELEASE}} = grep { !$subs{$_} == $_ } @{$self->{+_CONTEXT_RELEASE}};
 }
 
 sub send {
@@ -546,6 +584,34 @@ codeblock will be a L<Test::Stream::DebugInfo> instance.
 
 follow_up subs are called only once, ether when done_testing is called, or in
 an END block.
+
+=item $sub = $hub->add_context_init(sub { ... });
+
+This allows you to add callbacks that will trigger every time a new context is
+created for the hub. The only argument to the sub will be the
+L<Test::Stream::Context> instance that was created.
+
+B<Note> Using this hook could have a huge performance impact.
+
+The coderef you provide is returned and can be used to remove the hook later.
+
+=item $hub->remove_context_init($sub);
+
+This can be used to remove a context init hook.
+
+=item $sub = $hub->add_context_release(sub { ... });
+
+This allows you to add callbacks that will trigger every time a context for
+this hub is released. The only argument to the sub will be the
+L<Test::Stream::Context> instance that was released.
+
+B<Note> Using this hook could have a huge performance impact.
+
+The coderef you provide is returned and can be used to remove the hook later.
+
+=item $hub->remove_context_release($sub);
+
+This can be used to remove a context release hook.
 
 =item $hub->cull()
 

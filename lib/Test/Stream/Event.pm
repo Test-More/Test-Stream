@@ -2,7 +2,7 @@ package Test::Stream::Event;
 use strict;
 use warnings;
 
-use Test::Stream::Carp qw/confess/;
+use Carp qw/confess/;
 
 use Test::Stream::HashBase(
     accessors => [qw/debug nested/],
@@ -28,13 +28,13 @@ sub init {
     confess("No debug info provided!") unless $_[0]->{+DEBUG};
 }
 
-sub update_state { }
+sub update_state { 
+    # left blank as there are many events that do not require state changes.
+}
 
 sub terminate { undef }
 
 sub global { 0 }
-
-sub subevents { }
 
 1;
 
@@ -143,11 +143,6 @@ inside a tools package. This is typically used for debugging.
 
 If this event is nested inside of other events, this should be the depth of
 nesting. (This is mainly for subtests)
-
-=item @events = $e->subevents
-
-If the event type can encapsulate other events, thisis how you retrieve them.
-This will return an empty list for other events.
 
 =item $e->update_state($state)
 

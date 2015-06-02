@@ -2,9 +2,9 @@ package Test::Stream::DebugInfo;
 use strict;
 use warnings;
 
-use Test::Stream::Threads;
+use Test::Stream::Util qw/get_tid USE_THREADS/;
 
-use Test::Stream::Carp qw/confess/;
+use Carp qw/confess/;
 
 use Test::Stream::HashBase(
     accessors => [qw/frame todo skip detail pid tid/],
@@ -45,6 +45,12 @@ sub package { $_[0]->{+FRAME}->[0] }
 sub file    { $_[0]->{+FRAME}->[1] }
 sub line    { $_[0]->{+FRAME}->[2] }
 sub subname { $_[0]->{+FRAME}->[3] }
+
+sub no_fail {
+    my $self = shift;
+    return defined($self->{+TODO})
+        || defined($self->{+SKIP});
+}
 
 1;
 

@@ -3,12 +3,12 @@ use strict;
 use warnings;
 
 use Test::Stream::Event(
-    accessors => [qw/message linked/],
+    accessors => [qw/message/],
 );
 
-use Scalar::Util qw/weaken/;
+use Carp qw/confess/;
+
 use Test::Stream::TAP qw/OUT_TODO OUT_ERR/;
-use Test::Stream::Carp qw/confess/;
 
 sub init {
     $_[0]->SUPER::init();
@@ -18,15 +18,6 @@ sub init {
     else {
         $_[0]->{+MESSAGE} = 'undef';
     }
-    weaken($_[0]->{+LINKED}) if $_[0]->{+LINKED};
-}
-
-sub link {
-    my $self = shift;
-    my ($to) = @_;
-    confess "Already linked!" if $self->{+LINKED};
-    $self->{+LINKED} = $to;
-    weaken($self->{+LINKED});
 }
 
 sub to_tap {
@@ -87,20 +78,6 @@ Diagnostics messages, typically rendered to STDERR.
 =item $diag->message
 
 The message for the diag.
-
-=item $diag->linked
-
-The Ok event the diag is linked to, if it is.
-
-=back
-
-=head1 METHODS
-
-=over 4
-
-=item $diag->link($ok);
-
-Link the diag to an OK event.
 
 =back
 

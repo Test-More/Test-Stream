@@ -2,11 +2,12 @@ package Test::Stream::Util;
 use strict;
 use warnings;
 
+use Test::Stream::Capabilities qw/CAN_THREAD/;
 use Scalar::Util qw/reftype blessed/;
 use Test::Stream::Exporter qw/import export_to exports/;
-use Test::Stream::Carp qw/croak/;
+use Carp qw/croak/;
 
-exports qw{ try protect spoof };
+exports qw{ try protect get_tid USE_THREADS };
 
 no Test::Stream::Exporter;
 
@@ -55,7 +56,7 @@ sub _manual_try(&) {
         $SIG{__DIE__} = $die;
     }
 
-    return wantarray ? ($ok, $error) : $ok;
+    return ($ok, $error);
 }
 
 sub _local_try(&) {
@@ -71,7 +72,7 @@ sub _local_try(&) {
         }
     }
 
-    return wantarray ? ($ok, $error) : $ok;
+    return ($ok, $error);
 }
 
 # Older versions of perl have a nasty bug on win32 when localizing a variable
@@ -88,31 +89,27 @@ BEGIN {
     }
 }
 
-sub spoof {
-    my ($call, $code, @args) = @_;
+BEGIN {
+    if(CAN_THREAD) {
+        # Threads are possible, so we need it to be dynamic.
 
-    croak "The first argument to spoof must be an arrayref with package, filename, and line."
-        unless $call && @$call == 3;
-
-    croak "The second argument must be a string to run."
-        if ref $code;
-
-    my $error;
-    my $ok;
-
-    protect {
-        $ok = eval <<"        EOT" || 0;
-package $call->[0];
-#line $call->[2] "$call->[1]"
-$code;
-1;
-        EOT
-        unless($ok) {
-            $error = $@ || "Error was squashed!\n";
+        if ($INC{'threads.pm'}) {
+            # Threads are already loaded, so we do not need to check if they
+            # are loaded each time
+            *USE_THREADS = sub() { 1 };
+            *get_tid = sub { threads->tid() };
         }
-    };
-
-    return wantarray ? ($ok, $error) : $ok;
+        else {
+            # :-( Need to check each time to see if they have been loaded.
+            *USE_THREADS = sub { $INC{'threads.pm'} ? 1 : 0 };
+            *get_tid = sub { $INC{'threads.pm'} ? threads->tid() : 0 };
+        }
+    }
+    else {
+        # No threads, not now, not ever!
+        *USE_THREADS = sub() { 0 };
+        *get_tid     = sub() { 0 };
+    }
 }
 
 1;
@@ -147,13 +144,11 @@ Collection of tools used by L<Test::Stream> and friends.
 
 =over 4
 
-=item $success = try { ... }
-
 =item ($success, $error) = try { ... }
 
-Eval the codeblock, return success or failure, and optionally the error
-message. This code protects $@ and $!, they will be restored by the end of the
-run. This code also temporarily blocks $SIG{DIE} handlers.
+Eval the codeblock, return success or failure, and the error message. This code
+protects $@ and $!, they will be restored by the end of the run. This code also
+temporarily blocks $SIG{DIE} handlers.
 
 =item protect { ... }
 
@@ -162,14 +157,14 @@ protect $@ and $! from changes. $@ and $! will be restored to whatever they
 were before the run so long as it is successful. If the run fails $! will still
 be restored, but $@ will contain the exception being thrown.
 
-=item spoof([$package, $file, $line], "Code String", @args)
+=item USE_THREADS
 
-Eval the string provided as the second argument pretending to be the specified
-package, file, and line number. The main purpose of this is to have warnings
-and exceptions be thrown from the desired context.
+Returns true if threads are enabled, false if they are not.
 
-Additional arguments will be added to an C<@args> variable that is available to
-you inside your code string.
+=item get_tid
+
+This will return the id of the current thread when threads are enabled,
+otherwise it returns 0.
 
 =back
 
