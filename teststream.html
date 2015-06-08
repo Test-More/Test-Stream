@@ -83,6 +83,7 @@ Test-Simple version: 1.302003001
                         my $out = ok($ok, $name)
                         diag($optional_diag) unless $out;
 
+                        $ctx->release; # We tell it when we are done
                         return $out;
                     }
                 </script>
@@ -107,6 +108,7 @@ Test-Simple version: 1.302003001
                         local $Test::Builder::Level = $Test::Builder::Level + 1;
                         my $out = ok($ok, $name);
                         diag($optional_diag) unless $out;
+
 
                         return $out;
                     }
