@@ -80,7 +80,7 @@ Test-Simple version: 1.302003001
 
                         # This replaces $Level
                         my $ctx = context();
-                        my $out = ok($ok, $name)
+                        my $out = ok($ok, $name);
                         diag($optional_diag) unless $out;
 
                         $ctx->release; # We tell it when we are done
