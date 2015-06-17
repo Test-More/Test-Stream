@@ -9,9 +9,15 @@ my @DRIVERS;
 
 sub drivers {
     unless(@DRIVERS) {
-        # Fallback to files
-        require Test::Stream::IPC::Files;
-        push @DRIVERS => 'Test::Stream::IPC::Files';
+        # Fallback to INET or files
+        require Test::Stream::IPC::INET;
+        if (Test::Stream::IPC::INET->is_viable()) {
+            push @DRIVERS => 'Test::Stream::IPC::INET';
+        }
+        else {
+            require Test::Stream::IPC::Files;
+            push @DRIVERS => 'Test::Stream::IPC::Files';
+        }
     }
 
     return @DRIVERS;

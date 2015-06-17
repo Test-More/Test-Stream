@@ -26,8 +26,9 @@ sub _init {
     $STACK = Test::Stream::Stack->new;
 
     return unless $INC{'Test/Stream/IPC.pm'};
-    my ($driver) = Test::Stream::IPC->drivers;
-    $IPC = $driver->new;
+    for my $driver (Test::Stream::IPC->drivers) {
+        last if $IPC = $driver->new;
+    }
 }
 
 sub add_hook {
