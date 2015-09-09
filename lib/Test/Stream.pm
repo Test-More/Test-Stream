@@ -90,14 +90,6 @@ sub load {
 
         # Load the plugin
         $arg = 'Test::Stream::Plugin::' . $arg unless $full;
-        my $file = pkg_to_file($arg);
-        unless (eval { require $file; 1 }) {
-            my $error = $@ || 'unknown error';
-            my $file = __FILE__;
-            my $line = __LINE__ - 3;
-            $error =~ s/ at \Q$file\E line $line.*//;
-            croak "Could not load Test::Stream plugin '$arg': $error";
-        }
 
         # Get the value
         my $val;
@@ -131,6 +123,15 @@ sub load {
         my $import = $args{$arg};
         my $mod  = $arg;
 
+        my $file = pkg_to_file($mod);
+        unless (eval { require $file; 1 }) {
+            my $error = $@ || 'unknown error';
+            my $file = __FILE__;
+            my $line = __LINE__ - 3;
+            $error =~ s/ at \Q$file\E line $line.*//;
+            croak "Could not load Test::Stream plugin '$arg': $error";
+        }
+
         if ($mod->can('load_ts_plugin')) {
             $mod->load_ts_plugin($caller, @$import);
         }
@@ -141,6 +142,8 @@ sub load {
             croak "Module '$mod' does it implement 'load_ts_plugin()', nor does it export using Test::Stream::Exporter."
         }
     }
+
+    Test::Stream::Sync->loaded(1);
 }
 
 1;

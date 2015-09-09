@@ -11,6 +11,7 @@ exports qw{
     end filter_items
     T F D DNE
     event
+    exact_ref
 };
 no Test::Stream::Exporter;
 
@@ -85,11 +86,23 @@ sub T() { $T }
 sub F() { $F }
 sub D() { $D }
 
+sub strict_convert  { convert($_[0], 1) }
+sub relaxed_convert { convert($_[0], 0) }
+
 sub DNE() {
     my @caller = caller;
     Test::Stream::Compare::DNE->new(
         file  => $caller[1],
         lines => [$caller[2]],
+    );
+}
+
+sub exact_ref($) {
+    my @caller = caller;
+    return Test::Stream::Compare::Ref->new(
+        file  => $caller[1],
+        lines => [$caller[2]],
+        input => $_[0],
     );
 }
 
@@ -128,7 +141,7 @@ sub check {
 }
 
 sub filter_items(&) {
-    my $build = get_build() || croak "No current build!";
+    my $build = get_build() or croak "No current build!";
 
     croak "'$build' does not support filters"
         unless $build->can('add_filter');
@@ -140,9 +153,9 @@ sub filter_items(&) {
 }
 
 sub end() {
-    my $build = get_build() || croak "No current build!";
+    my $build = get_build() or croak "No current build!";
 
-    croak "'$build' does not support 'end_items'"
+    croak "'$build' does not support 'ending'"
         unless $build->can('ending');
 
     croak "'end' should only ever be called in void context"
@@ -153,7 +166,7 @@ sub end() {
 
 sub call($$) {
     my ($name, $expect) = @_;
-    my $build = get_build() || croak "No current build!";
+    my $build = get_build() or croak "No current build!";
 
     croak "'$build' does not support method calls"
         unless $build->can('add_call');
@@ -174,7 +187,7 @@ sub call($$) {
 
 sub prop($$) {
     my ($name, $expect) = @_;
-    my $build = get_build() || croak "No current build!";
+    my $build = get_build() or croak "No current build!";
 
     croak "'$build' does not support meta-checks"
         unless $build->can('add_prop');
@@ -197,7 +210,7 @@ sub item($;$) {
     my @args   = @_;
     my $expect = pop @args;
 
-    my $build = get_build() || croak "No current build!";
+    my $build = get_build() or croak "No current build!";
 
     croak "'$build' does not support array item checks"
         unless $build->can('add_item');
@@ -218,7 +231,7 @@ sub item($;$) {
 sub field($$) {
     my ($name, $expect) = @_;
 
-    my $build = get_build() || croak "No current build!";
+    my $build = get_build() or croak "No current build!";
 
     croak "'$build' does not support hash field checks"
         unless $build->can('add_field');
@@ -287,7 +300,7 @@ sub event($;$) {
     my $tcheck = Test::Stream::Compare::Custom->new(
         file  => $caller[1],
         lines => [$caller[2]],
-        code  => sub {},
+        code  => sub { $_->isa($type) },
         name  => "isa($intype)",
     );
 
@@ -295,7 +308,7 @@ sub event($;$) {
 
     return $event if defined wantarray;
 
-    my $build = get_build() || croak "No current build!";
+    my $build = get_build() or croak "No current build!";
     $build->add_item($event);
 }
 
@@ -312,12 +325,12 @@ sub _type {
     return $rt || '';
 }
 
-sub strict_convert {
-    my $thing = shift;
+sub convert {
+    my ($thing, $strict) = @_;
 
     if ($thing && blessed($thing) && $thing->isa('Test::Stream::Compare')) {
         return $thing unless $thing->isa('Test::Stream::Compare::Wildcard');
-        my $newthing = strict_convert($thing->expect);
+        my $newthing = convert($thing->expect, $strict);
         $newthing->set_file($thing->file)   unless $newthing->file;
         $newthing->set_lines($thing->lines) unless $newthing->lines;
         return $newthing;
@@ -325,47 +338,19 @@ sub strict_convert {
 
     my $type = _type($thing);
 
-    return Test::Stream::Compare::Array->new(inref => $thing, ending => 1)
+    return Test::Stream::Compare::Array->new(inref => $thing, $strict ? (ending => 1) : ())
         if $type eq 'ARRAY';
 
-    return Test::Stream::Compare::Hash->new(inref => $thing, ending => 1)
+    return Test::Stream::Compare::Hash->new(inref => $thing, $strict ? (ending => 1) : ())
         if $type eq 'HASH';
 
-    if ($type eq 'SCALAR') {
-        my $nested = strict_convert($$thing);
-        return Test::Stream::Compare::Scalar->new(item => $nested)
+    unless ($strict) {
+        return Test::Stream::Compare::Pattern->new(pattern => $thing)
+            if $type eq 'REGEXP';
+
+        return Test::Stream::Compare::Custom->new(code => $thing)
+            if $type eq 'CODE';
     }
-
-    return Test::Stream::Compare::Ref->new(input => $thing)
-        if $type;
-
-    return Test::Stream::Compare::Value->new(input => $thing);
-}
-
-sub relaxed_convert {
-    my $thing = shift;
-
-    if ($thing && blessed($thing) && $thing->isa('Test::Stream::Compare')) {
-        return $thing unless $thing->isa('Test::Stream::Compare::Wildcard');
-        my $newthing = relaxed_convert($thing->expect);
-        $newthing->set_file($thing->file)   unless $newthing->file;
-        $newthing->set_lines($thing->lines) unless $newthing->lines;
-        return $newthing;
-    }
-
-    my $type = _type($thing);
-
-    return Test::Stream::Compare::Array->new(inref => $thing)
-        if $type eq 'ARRAY';
-
-    return Test::Stream::Compare::Hash->new(inref => $thing)
-        if $type eq 'HASH';
-
-    return Test::Stream::Compare::Pattern->new(pattern => $thing)
-        if $type eq 'REGEXP';
-
-    return Test::Stream::Compare::Custom->new(code => $thing)
-        if $type eq 'CODE';
 
     if ($type eq 'SCALAR') {
         my $nested = relaxed_convert($$thing);
@@ -377,6 +362,5 @@ sub relaxed_convert {
 
     return Test::Stream::Compare::Value->new(input => $thing);
 }
-
 
 1;

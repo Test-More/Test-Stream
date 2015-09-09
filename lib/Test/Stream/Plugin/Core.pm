@@ -22,8 +22,8 @@ default_exports qw{
     BAIL_OUT
     todo skip
     can_ok isa_ok DOES_ok ref_ok
-    imported not_imported
-    same_ref diff_ref
+    imported_ok not_imported_ok
+    ref_is ref_is_not
     set_encoding
 };
 no Test::Stream::Exporter;
@@ -74,7 +74,7 @@ sub ok($;$@) {
     return $bool ? 1 : 0;
 }
 
-sub same_ref($$;$@) {
+sub ref_is($$;$@) {
     my ($got, $exp, $name, @diag) = @_;
     my $ctx = context();
 
@@ -97,7 +97,7 @@ sub same_ref($$;$@) {
     return $bool ? 1 : 0;
 }
 
-sub diff_ref($$;$) {
+sub ref_is_not($$;$) {
     my ($got, $exp, $name, @diag) = @_;
     my $ctx = context();
 
@@ -269,7 +269,7 @@ sub _imported {
     return @missing;
 }
 
-sub imported {
+sub imported_ok {
     my $caller = caller;
 
     my $ctx = context();
@@ -283,7 +283,7 @@ sub imported {
     return !@missing;
 }
 
-sub not_imported {
+sub not_imported_ok {
     my $caller = caller;
 
     my $ctx = context();

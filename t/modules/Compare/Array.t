@@ -142,12 +142,6 @@ tests deltas => sub {
     my $inref = ['a', 'b'];
     my $one = $CLASS->new(inref => $inref);
 
-    is(
-        [$one->deltas($inref, sub { die "xxx" }, 'seen')],
-        [],
-        "Same ref as inref"
-    );
-
     like(
         [$one->deltas(['a', 'b'], $conv, {})],
         [],

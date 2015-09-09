@@ -1,6 +1,6 @@
 use Test::Stream qw/-V1 -Tester Grab/;
 
-imported qw/grab/;
+imported_ok qw/grab/;
 
 my $grab = grab();
 ok(1, "pass");

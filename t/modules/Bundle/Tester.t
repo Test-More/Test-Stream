@@ -9,7 +9,7 @@ is(
     "All plugins listed"
 );
 
-imported qw/
+imported_ok qw/
     intercept grab
     load_plugin
     context

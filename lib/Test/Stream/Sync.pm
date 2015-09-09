@@ -17,14 +17,16 @@ use Test::Stream::Stack;
 # I know this may seem awful, but thats why this package is so small, this is
 # the only place I need to lock down. This is to prevent people from doing some
 # of the awful things they did with Test::Builder.
-my $PID     = $$;
-my $TID     = get_tid();
-my $NO_WAIT = 0;
-my $INIT    = undef;
-my $IPC     = undef;
-my $STACK   = undef;
-my $FORMAT  = undef;
-my @HOOKS   = ();
+my $PID       = $$;
+my $TID       = get_tid();
+my $NO_WAIT   = 0;
+my $INIT      = undef;
+my $IPC       = undef;
+my $STACK     = undef;
+my $FORMAT    = undef;
+my @HOOKS     = ();
+my $LOADED    = 0;
+my @POST_LOAD = ();
 
 # The only valid reason to touch these internals is to test them. As such the
 # internals can be exposed if the package is loaded from itself, and even then
@@ -37,27 +39,31 @@ my @HOOKS   = ();
 
         *GUTS = sub {
             return {
-                PID     => \$PID,
-                TID     => \$TID,
-                NO_WAIT => \$NO_WAIT,
-                INIT    => \$INIT,
-                IPC     => \$IPC,
-                STACK   => \$STACK,
-                FORMAT  => \$FORMAT,
-                HOOKS   => \@HOOKS,
+                PID       => \$PID,
+                TID       => \$TID,
+                NO_WAIT   => \$NO_WAIT,
+                INIT      => \$INIT,
+                IPC       => \$IPC,
+                STACK     => \$STACK,
+                FORMAT    => \$FORMAT,
+                HOOKS     => \@HOOKS,
+                LOADED    => \$LOADED,
+                POST_LOAD => \@POST_LOAD,
             };
         };
-    
+
         *GUTS_SNAPSHOT = sub {
-             return {
-                PID     => $PID,
-                TID     => $TID,
-                NO_WAIT => $NO_WAIT,
-                INIT    => $INIT,
-                IPC     => $IPC,
-                STACK   => $STACK,
-                FORMAT  => $FORMAT,
-                HOOKS   => [@HOOKS],
+            return {
+                PID       => $PID,
+                TID       => $TID,
+                NO_WAIT   => $NO_WAIT,
+                INIT      => $INIT,
+                IPC       => $IPC,
+                STACK     => $STACK,
+                FORMAT    => $FORMAT,
+                HOOKS     => [@HOOKS],
+                LOADED    => $LOADED,
+                POST_LOAD => [@POST_LOAD],
             };
         };
     }
@@ -66,9 +72,30 @@ my @HOOKS   = ();
 sub pid { $PID }
 sub tid { $TID }
 
-sub hooks { scalar @HOOKS }
+sub hooks       { scalar @HOOKS }
+sub poast_loads { scalar @POST_LOAD }
 
 sub init_done { $INIT ? 1 : 0 }
+
+sub post_load {
+    my $class = shift;
+    my ($code) = @_;
+    return $code->() if $LOADED;
+    push @POST_LOAD => $code;
+}
+
+sub loaded {
+    my $class = shift;
+
+    return $LOADED if $LOADED || !@_;
+
+    if ($_[0]) {
+        $LOADED = 1;
+        $_->() for @POST_LOAD;
+    }
+
+    return $LOADED
+}
 
 sub _init {
     $INIT  = [caller(1)];
@@ -307,6 +334,23 @@ C<$exit> argument will be the original exit code before anything modified it.
 C<$$new_exit> is a reference to the new exit code. You may modify this to
 change the exit code. Please note that C<$$new_exit> may already be different
 from C<$exit>
+
+=item Test::Stream::Sync->post_load(sub { ... })
+
+Add a callback that will be called when Test::Stream is finished loading. This
+means the callback will be run when Test::Stream is done loading all the
+plugins in your use statement. If Test::Stream has already finished loading
+then the callback will be run immedietly.
+
+=item $bool = Test::Stream::Sync->loaded
+
+=item Test::Stream::Sync->loaded($true)
+
+Without arguments this will simply return the boolean value of the loaded flag.
+If Test::Stream has finished loading this will be true, otherwise false. If a
+true value is provided as an argument then this will set the flag to true, and
+run all C<post_load> callbacks. The second form should B<ONLY> ever be used in
+L<Test::Stream> or alternative loader modules.
 
 =back
 

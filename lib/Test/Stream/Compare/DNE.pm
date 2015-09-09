@@ -11,8 +11,8 @@ sub name { "<DOES NOT EXIST>" }
 sub operator { '!exists' }
 
 sub verify {
-    my $ctx = Test::Stream::Context::context;
-    $ctx->throw("DNE->verify() should never be called, was DNE used in a non-hash?");
+    my $self = shift;
+    return @_ ? 0 : 1;
 }
 
 1;

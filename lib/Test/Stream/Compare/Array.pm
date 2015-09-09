@@ -91,11 +91,6 @@ sub deltas {
     my $self = shift;
     my ($got, $convert, $seen) = @_;
 
-    # Short-cut if $got and $ref are the same reference
-    if (my $ref = $self->{+INREF}) {
-        return if $ref == $got;
-    }
-
     my @deltas;
     my $state = 0;
     my @order = @{$self->{+ORDER}};
@@ -129,7 +124,7 @@ sub deltas {
 
         my $check = $convert->($items->{$idx});
 
-        if ($overflow) {
+        if ($overflow && !$check->isa('Test::Stream::Compare::DNE')) {
             push @deltas => $self->delta_class->new(
                 dne      => 'got',
                 verified => undef,
@@ -139,7 +134,12 @@ sub deltas {
             );
         }
         else {
-            push @deltas => $check->run([ARRAY => $idx], $val, $convert, $seen);
+            push @deltas => $check->run(
+                id      => [ARRAY => $idx],
+                convert => $convert,
+                seen    => $seen,
+                $overflow ? () : (got => $val),
+            );
         }
     }
 

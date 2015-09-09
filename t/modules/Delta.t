@@ -14,12 +14,12 @@ my $check1 = Test::Stream::Compare::Value->new(input => 'x');
 my $check2 = Test::Stream::Compare::Value->new(input => 'y');
 
 $one = $CLASS->new(check => $check1);
-same_ref($one->chk, $check1, "Got our check");
-same_ref($one->check, $check1, "Got our check aliased");
+ref_is($one->chk, $check1, "Got our check");
+ref_is($one->check, $check1, "Got our check aliased");
 
 $one = $CLASS->new(chk => $check2);
-same_ref($one->chk, $check2, "Got our check");
-same_ref($one->check, $check2, "Got our check aliased");
+ref_is($one->chk, $check2, "Got our check");
+ref_is($one->check, $check2, "Got our check aliased");
 
 like(
     dies { $CLASS->new(check => $check1, chk => $check2) },

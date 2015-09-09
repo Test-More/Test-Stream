@@ -2,15 +2,15 @@ use Test::Stream qw/-V1 -Tester/;
 
 use File::Temp qw/tempfile/;
 
-imported qw{
+imported_ok qw{
     ok pass fail
     diag note
     plan skip_all done_testing
     BAIL_OUT
     todo skip
     can_ok isa_ok DOES_ok ref_ok
-    imported not_imported
-    same_ref diff_ref
+    imported_ok not_imported_ok
+    ref_is ref_is_not
     set_encoding
 };
 
@@ -330,23 +330,23 @@ my $y = [];
 like(
     intercept {
 
-        same_ref($x, $x, 'same x');
-        same_ref($x, $y, 'not same');
+        ref_is($x, $x, 'same x');
+        ref_is($x, $y, 'not same');
 
-        diff_ref($x, $y, 'not same');
-        diff_ref($y, $y, 'same y');
+        ref_is_not($x, $y, 'not same');
+        ref_is_not($y, $y, 'same y');
 
-        same_ref('x', $x, 'no ref');
-        same_ref($x, 'x', 'no ref');
+        ref_is('x', $x, 'no ref');
+        ref_is($x, 'x', 'no ref');
 
-        diff_ref('x', $x, 'no ref');
-        diff_ref($x, 'x', 'no ref');
+        ref_is_not('x', $x, 'no ref');
+        ref_is_not($x, 'x', 'no ref');
 
-        same_ref(undef, $x, 'undef');
-        same_ref($x, undef, 'undef');
+        ref_is(undef, $x, 'undef');
+        ref_is($x, undef, 'undef');
 
-        diff_ref(undef, $x, 'undef');
-        diff_ref($x, undef, 'undef');
+        ref_is_not(undef, $x, 'undef');
+        ref_is_not($x, undef, 'undef');
     },
     array {
         event Ok => sub { call pass => 1 };

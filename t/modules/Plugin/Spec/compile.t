@@ -1,6 +1,6 @@
 use Test::Stream '-V1', 'Compare' => ['-all'];
 
-imported qw{
+imported_ok qw{
     describe cases
     tests it
     case

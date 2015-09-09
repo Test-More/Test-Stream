@@ -14,8 +14,15 @@ export compare => sub {
 
     $check = $convert->($check);
 
-    return $check->run(undef, $got, $convert, {});
+    return $check->run(
+        id      => undef,
+        got     => $got,
+        convert => $convert,
+        seen    => {},
+    );
 };
+
+sub MAX_CYCLES() { 75 }
 
 my @BUILD;
 
@@ -76,17 +83,26 @@ sub render {
 
 sub run {
     my $self = shift;
-    my ($id, $got, $convert, $seen) = @_;
+    my %params = @_;
 
-    if ($got) {
-        return if $seen->{$got};
+    my $id      = $params{id};
+    my $convert = $params{convert} or confess "no convert sub provided";
+    my $seen    = $params{seen} || {};
+
+    my $dne = !exists $params{got};
+    my $got = $dne ? undef : $params{got};
+
+    # Prevent infinite cycles
+    if ($got && ref $got) {
+        die "Cycle detected in comparison, aborting"
+            if $seen->{$got} && $seen->{$got} >= MAX_CYCLES;
         $seen->{$got}++;
     }
 
-    my $ok = $self->verify($got);
+    my $ok = $self->verify($dne ? () : $got);
     my @deltas = $ok ? $self->deltas($got, $convert, $seen) : ();
 
-    $seen->{$got}-- if $got;
+    $seen->{$got}-- if $got && ref $got;
 
     return if $ok && !@deltas;
 
@@ -262,7 +278,7 @@ Get the name of the check.
 
 What should be displayed in a table for this check, usually the name or value.
 
-=item $delta = $check->run($id, $got, \&convert, \%seen)
+=item $delta = $check->run(id => $id, got => $got, convert => \&convert, seen => \%seen)
 
 This is where the checking is done, first a shallow check using
 C<< $check->verify >>, then checking C<< $check->deltas() >>. C<\%seen> is used

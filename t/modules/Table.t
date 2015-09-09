@@ -1,7 +1,7 @@
 use Test::Stream -V1, -SpecTester, UTF8;
 use Test::Stream::Table qw/table/;
 
-imported 'table';
+imported_ok 'table';
 
 my $unsanitary = <<EOT;
 This string
