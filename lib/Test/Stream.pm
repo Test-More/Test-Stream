@@ -322,6 +322,8 @@ the blacklist items.
 This will load the plugin with all options. The '*' gets turned into
 C<['-all']> for you.
 
+=back
+
 =head2 SEE ALSO
 
 For more about plugins and bundles see the following docs:
