@@ -79,11 +79,11 @@ like(
         # Failure in the inner block
         event Subtest => sub {
             call pass => 0;
-            call diag => [ qr{Failed test 'outer'} ];
+            call diag => [ qr{Failed test 'Subtest: outer'} ];
             call subevents => array {
                 event Subtest => sub {
                     call pass => 0;
-                    call diag => [ qr{Failed test 'inner'} ];
+                    call diag => [ qr{Failed test 'Subtest: inner'} ];
                     call subevents => array {
                         event Ok => { pass => 0 };
                     };
@@ -94,11 +94,11 @@ like(
 
         event Subtest => sub {
             call pass => 0;
-            call diag => [ qr{Failed test 'outer'}s ];
+            call diag => [ qr{Failed test 'Subtest: outer'}s ];
             call subevents => array {
                 event Subtest => sub {
                     call pass => 0;
-                    call diag => [ qr{Failed test 'inner'} ];
+                    call diag => [ qr{Failed test 'Subtest: inner'} ];
                     call subevents => array {
                         event Exception => { error => qr{xxx} };
                     };
@@ -109,11 +109,11 @@ like(
 
         event Subtest => sub {
             call pass => 0;
-            call diag => [ qr{Failed test 'outer'}s ];
+            call diag => [ qr{Failed test 'Subtest: outer'}s ];
             call subevents => array {
                 event Subtest => sub {
                     call pass => 0;
-                    call diag => [ qr{Failed test 'inner'} ];
+                    call diag => [ qr{Failed test 'Subtest: inner'} ];
                     call subevents => array {
                         event Ok => { name => 'a', pass => 0 };
                         event Ok => { name => 'b', pass => 0 };
@@ -133,11 +133,11 @@ like(
 
         event Subtest => sub {
             call pass => 0;
-            call diag => [ qr{Failed test 'outer'}s ];
+            call diag => [ qr{Failed test 'Subtest: outer'}s ];
             call subevents => array {
                 event Subtest => sub {
                     call pass => 0;
-                    call diag => [ qr{Failed test 'inner'} ];
+                    call diag => [ qr{Failed test 'Subtest: inner'} ];
                     call subevents => array {
                         event Exception => { error => qr{xxx} };
                         event Ok => { name => 'b', pass => 0 };
@@ -157,11 +157,11 @@ like(
 
         event Subtest => sub {
             call pass => 0;
-            call diag => [ qr{Failed test 'outer'}s ];
+            call diag => [ qr{Failed test 'Subtest: outer'}s ];
             call subevents => array {
                 event Subtest => sub {
                     call pass => 0;
-                    call diag => [ qr{Failed test 'inner'} ];
+                    call diag => [ qr{Failed test 'Subtest: inner'} ];
                     call subevents => array {
                         event Ok => {
                             pass => 0,

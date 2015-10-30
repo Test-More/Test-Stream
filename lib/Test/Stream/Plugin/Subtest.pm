@@ -42,7 +42,7 @@ sub subtest_streamed {
 sub subtest_buffered {
     my ($name, $code, @args) = @_;
     my $ctx = context();
-    my $pass = _subtest($name, $code, 1, @args);
+    my $pass = _subtest("Subtest: $name", $code, 1, @args);
     $ctx->release;
     return $pass;
 }

@@ -65,7 +65,7 @@ like(
             field subevents => array {
                 event Subtest => sub {
                     field pass => 1;
-                    field name => 'bar';
+                    field name => 'Subtest: bar';
                     field subevents => array {
                         event Ok => sub {
                             field name => 'pass';
@@ -257,7 +257,7 @@ like(
             prop file => __FILE__;
             prop line => $lines[0];
             field pass => 1;
-            field name => 'foo';
+            field name => 'Subtest: foo';
             field subevents => array {
                 event Ok => sub {
                     prop file => __FILE__;
@@ -285,7 +285,7 @@ like(
             prop file => __FILE__;
             prop line => $lines[0];
             field pass => 0;
-            field name => 'foo';
+            field name => 'Subtest: foo';
             field subevents => array {
                 event Ok => sub {
                     prop file => __FILE__;
@@ -314,7 +314,7 @@ like(
             prop file => __FILE__;
             prop line => $lines[0];
             field pass => 1;
-            field name => 'foo';
+            field name => 'Subtest: foo';
             field subevents => array {
                 event Ok => sub {
                     prop file => __FILE__;
@@ -345,7 +345,7 @@ like(
             prop file => __FILE__;
             prop line => $lines[0];
             field pass => 1;
-            field name => 'foo';
+            field name => 'Subtest: foo';
             field subevents => array {
                 event Plan => { max => 1 };
                 event Ok => sub {
@@ -376,7 +376,7 @@ like(
             prop file => __FILE__;
             prop line => $lines[0];
             field pass => 1;
-            field name => 'foo';
+            field name => 'Subtest: foo';
             field subevents => array {
                 event Plan => { directive => 'SKIP', reason => 'bleh' };
                 end;
