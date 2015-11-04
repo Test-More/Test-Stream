@@ -468,3 +468,26 @@ table.benchmark td, table.benchmark th {
     padding-left: 8px;
     padding-right: 8px;
 }
+
+dl.short {
+    list-style: none;
+    margin: 0;
+    padding: 0px;
+    display: block;
+    overflow: hidden;
+}
+
+dl.short dt {
+    float: left;
+    font-weight: bold;
+    padding-left: 10px;
+    width: 60px;
+    margin-right: 10px;
+    margin-bottom: 8px;
+    clear: left;
+}
+
+dl.short dd {
+    float: left;
+    clear: right;
+}

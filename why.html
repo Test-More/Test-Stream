@@ -1,0 +1,340 @@
+<dl class="listnav">
+    <dt id="builder">Test::Builder</dt>
+    <dd>
+        <dl class="sub_list">
+            <dt id="problems">Problems</dt>
+            <dd>
+                <h2>What's <u><i>wrong</i></u> with Test::Builder? <small style="font-weight: lighter">(Test::More)</small></h2>
+        
+                <table>
+                    <tr>
+                        <td><img src="oldage.jpg"/></td>
+                        <td><img src="snail.jpg"/></td>
+                        <td><img src="map-old.png"/></td>
+                    </tr>
+                    <tr>
+                        <td><img src="nostraws.jpg"/></td>
+                        <td><img src="notesting.png"/></td>
+                        <td><img src="notooling.png"/></td>
+                    </tr>
+                </table>
+            </dd>
+        
+            <dt id="old">old-age</dt>
+            <dd>
+                <h2>Test::Builder is showing its age</h2>
+        
+                <img style="float: right" src="oldage.jpg"/>
+        
+                <br />
+                <br />
+        
+                <ul>
+                    <li>First release was March 28, 2001.</li>
+                    <li>Last significant feature added Jun 23, 2009 (subtests).</li>
+                    <li>Test-Builder/More2 halted Test-Builder, but ultimately stalled.</li>
+                    <li>The code has grown organically, it shows.</li>
+                </ul>
+            </dd>
+        
+            <dt id="speed">Speed</dt>
+            <dd>
+                <h2>Test::Builder is slow</h2>
+        
+                 <img style="float: right" src="snail.jpg"/>
+        
+                 <br />
+                 <br />
+        
+                 <ul>
+                    <li>Old code has some inefficient practices.</li>
+                    <li>Perl test suite takes a very long time to run.</li>
+                    <li>Not everything benefits from the features that make it slow.</li>
+                 </ul>
+            </dd>
+        
+            <dt id="level">Level</dt>
+            <dd>
+                <h2>Test::Builder uses a $Level variable for error reporting</h2>
+        
+                <script class="code">
+                    sub my_ok {
+                        my ($ok, $name, $optional_diag) = @_;
+        
+                        # Ensure errors are reported to our caller.
+                        local $Test::Builder::Level = $Test::Builder::Level + 1;
+                        my $out = ok($ok, $name);
+                        diag($optional_diag) unless $out;
+        
+                        return $out;
+                    }
+                </script>
+        
+                <img style="float: right" src="map-old.png"/>
+        
+                <ul>
+                    <li>Obscure, very few people are aware of it.</li>
+                    <li>The job it does is super critical.</li>
+                    <li>It does not do the job well.</li>
+                    <li>It is easy to get wrong.</li>
+                    <li>It is slow.</li>
+                </ul>
+        
+            </dd>
+        
+            <dt id="syncing">Syncing</dt>
+            <dd>
+                <h2>Test::Builder has minimal concurrency support</h2>
+        
+                <img style="float: right" src="nostraws.jpg"/>
+        
+                <br />
+                <br />
+        
+                <ul>
+                    <li>Works with ithreads... sometimes.</li>
+                    <li>Third party module required for forking, breaks ithread support.</li>
+                    <li>You can turn off test numbers and manually plan...</li>
+                    <li>Subtests and concurrency just do not play nicely.</li>
+                </ul>
+        
+                But at least you can run multiple test files concurrently!
+            </dd>
+        
+            <dt id="testing">Testing</dt>
+            <dd>
+                <h2>Test::Builder is hard to test (Wait, what?!)</h2>
+        
+                Test::Builder revolutionized testing in perl. It opened the door to an
+                entire ecosystem of intercompatible testing tools.
+                <p>
+                Suprisingly, testing tools build on Test::Builder is not easy.
+        
+                <img style="float: right" src="notesting.png"/>
+                <ul>
+                    <li>Test::Builder::Tester made it possible.</li>
+                    <li>Test::Tester made it better.</li>
+                    <li>Both are limited in what they support.</li>
+                    <li>Both are fragile.</li>
+                    <li>Both make assumption.</li>
+                </ul>
+        
+                The Test::Stream project was concieved after David Golden (XDG)
+                submitted
+                <a href="https://github.com/Test-More/test-more/pull/396">this pull request</a>.
+                It changed the indentation of a comment intended for human consumption,
+                but broke downstream tool tests.
+            </dd>
+        
+            <dt id="tooling">Tooling</dt>
+            <dd>
+                <h2>Test::Builder had a limited vision</h2>
+                <h3>Test::Builder assumed 'ok()' and 'diag()' were all you need</h2>
+        
+                <img style="float: right" src="notooling.png"/>
+                <ul>
+                    <li>No hooks into ok or diag.</li>
+                    <li>No way to customize their behavior.</li>
+                    <li>Modifying state is non-obvious and an afterthought.</li>
+                    <li>Monkeypatching is rampant.</li>
+                </ul>
+        
+                <h3>Test::Builder puts EVERYTHING into a monolithic singleton</h2>
+        
+                <ul>
+                    <li>Can't subclass test builder... not nicely anyway.</li>
+                    <li>Subtests hack on the singleton would be rated <b>NC-17</b> for gore.</li>
+                    <li>Can't easily intercept results.</li>
+                    <li>Tools that replace the singleton cannot work together.</li>
+                </ul>
+            </dd>
+
+        </dl>
+    </dd>
+
+    <dt id="stream">Test::Stream</dt>
+    <dd>
+        <dl class="sub_list">
+            <dt id="solutions">Solutions</dt>
+            <dd>
+                <h2>What's better with Test::Stream?</h2>
+        
+                <table>
+                    <tr>
+                        <td><img src="improved.jpg"/></td>
+                        <td><img src="fast.png"/></td>
+                        <td><img src="compass.jpg"/></td>
+                    </tr>
+                    <tr>
+                        <td><img src="straws.jpg"/></td>
+                        <td><img src="testing.png"/></td>
+                        <td><img src="tooling.png"/></td>
+                    </tr>
+                </table>
+            </dd>
+        
+            <dt id="new">New</dt>
+            <dd>
+                <h2>Test::Stream adopts modern practices and ideas</h2>
+        
+                <img style="float: right" src="improved.jpg"/>
+        
+                <br />
+                <br />
+        
+                <ul>
+                    <li>New architecture.</li>
+                    <li>Proper Encapsulation.</li>
+                    <li>Separation of concerns.</li>
+                    <li>Code was written with a goal in mind.</li>
+                    <li>Code was written to solve problems.</li>
+                </ul>
+            </dd>
+        
+            <dt id="speed">Speed</dt>
+            <dd>
+                <h2>Test::Stream is faster than Test::Builder</h2>
+        
+                <h3>Test::Builder numbers</h3>
+        
+        <pre>
+        Test-Simple version: 1.001014
+        1000000_oks.t  44.81s user 3.84s system 91% cpu 53.282 total
+        1000000_oks.t  45.36s user 3.91s system 91% cpu 53.955 total
+        </pre>
+        
+                <img style="float: right" src="fast.png"/>
+                <h3>Test::Stream numbers</h3>
+        
+        <pre>
+        Test-Stream version: 1.302003
+        1000000_oks.t  36.21s user 3.44s system 89% cpu 44.160 total
+        1000000_oks.t  36.75s user 3.32s system 89% cpu 44.623 total
+        </pre>
+        
+                <h3>Test::Builder converted to use Test::Stream under the hood</h3>
+        
+        <pre>
+        Test-Simple version: 1.302003001
+        1000000_oks.t  46.84s user 3.72s system 91% cpu 55.302 total
+        1000000_oks.t  48.11s user 3.88s system 91% cpu 56.839 total
+        </pre>
+        
+            </dd>
+        
+            <dt id="context">Context</dt>
+            <dd>
+                <h2>Test::Stream does not use $Level</h2>
+ 
+                <div id="context_code">
+                    <ul>
+                        <li><a href="#ts_context">Test::Stream</a></li>
+                        <li><a href="#tb_level">Test::Builder</a></li>
+                    </ul>
+                    <div id="ts_context">
+                        <script class="code">
+                            sub my_ok {
+                                my ($ok, $name, $optional_diag) = @_;
+                
+                                # This replaces $Level
+                                my $ctx = context();
+                                my $out = ok($ok, $name);
+                                diag($optional_diag) unless $out;
+                
+                                $ctx->release; # We tell it when we are done
+                                return $out;
+                            }
+                        </script>
+                    </div>
+                    <div id="tb_level">
+                        <script class="code">
+                            sub my_ok {
+                                my ($ok, $name, $optional_diag) = @_;
+                
+                                # Ensure errors are reported to our caller.
+                                local $Test::Builder::Level = $Test::Builder::Level + 1;
+                                my $out = ok($ok, $name);
+                                diag($optional_diag) unless $out;
+                
+                
+                                return $out;
+                            }
+                        </script>
+                    </div>
+                </div>
+
+                <script>$("#context_code").tabs();</script>
+
+                <img style="float: right" src="compass.jpg"/>
+        
+                <ul>
+                    <li>The context is a primary interface, not obscure.</li>
+                    <li>No need to localize things.</li>
+                    <li>The context is like a gps that keeps everything coordinated.</li>
+                </ul>
+            </dd>
+        
+            <dt id="syncing">Syncing</dt>
+            <dd>
+                <h2>Test::Stream was designed with concurrency in mind</h2>
+        
+                <img style="float: right" src="straws.jpg"/>
+        
+                <br />
+                <br />
+        
+                <ul>
+                    <li>Works with threads.</li>
+                    <li>Works with forking.</li>
+                    <li>Works with subtests.</li>
+                    <li>It just works.</li>
+                </ul>
+            </dd>
+        
+            <dt id="testing">Testing</dt>
+            <dd>
+                <h2>Test::Stream has tools to test testing tools</h2>
+        
+                <img style="float: right" src="testing.png"/>
+                <ul>
+                    <li>Facilties to intercept results as they happen.</li>
+                    <li>Functions to verify generated events.</li>
+                    <li>The test testing tool can test itself even!</li>
+                    <li>Not fragile.</li>
+                    <li>Easy to customize.</li>
+                </ul>
+            </dd>
+        
+            <dt id="tooling">Tooling</dt>
+            <dd>
+                <h2>Test::Stream tries not to assume it knows what you need</h2>
+        
+                <img style="float: right" src="tooling.png"/>
+                <ul>
+                    <li>Results are objects (Test::Stream::Event::*)</li>
+                    <li>You build an event, then send it off.</li>
+                    <li>There are hooks to modify events before they are processed.</li>
+                    <li>You can customize the output formatter, TAP is just the default.</li>
+                    <li>Hooks to watch events after they are processed.</li>
+                    <li>Hooks all the things!</li>
+                    <li>Minimal singleton.</li>
+                    <li>No need for monkeypatching.</li>
+                </ul>
+            </dd>
+        </dl>
+    </dd>
+
+    <dt id="berlin">Berlin&nbsp;2015</dt>
+    <dd>
+        <h2>QA Hackathon 2015 in Berlin</h2>
+
+        During the hackathon we had a <I>long</I> discussion about Test-Builder. Here is a summary of the findings:
+
+        <ul>
+            <li>Test-Builder has severe limitations and could benefit from new development.</li>
+            <li>Updating Test-Builder is acceptible, new development does not need to be a fork.</li>
+            <li>Test-Stream appears to address most of the limitations of Test-Builder.</li>
+            <li>We produced a list of things that must be done before Test-Builder on Test-Stream is released.</li>
+        </ul>
+    </dd>
+</dl>

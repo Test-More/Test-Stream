@@ -1,0 +1,186 @@
+<dl class="listnav">
+    <dt id="Sync">Sync</dt>
+    <dd>
+        <h2>Test::Stream::Sync</h2>
+
+        <ul>
+            <li>The sync object is where global state is tracked.</li>
+            <li>One of the goals of Test::Stream was to isolate and limit global state.</li>
+            <li>Test::Builder used a singleton to solve the same problem.</li>
+        </ul>
+
+        <h3>What it tracks:</h3>
+
+        <ul>
+            <li>Root PID and thread ID</li>
+            <li>Post-test hooks</li>
+            <li>Post-load hooks</li>
+            <li>Default formatter</li>
+            <li>Hub stack</li>
+            <li>IPC object</li>
+        </ul>
+    </dd>
+
+    <dt id="stack">Hub&nbsp;Stack</dt>
+    <dd>
+        <h2>Test::Stream::Stack (Hub Stack)</h2>
+
+        <ul>
+            <li>The hub stack is where a test tool finds the current hub.</li>
+            <li>The stack can contain any number of hubs.</li>
+            <li>The top hub is always current.</li>
+            <li>The stack has methods to help push, pop, and properly initialize hubs.</li>
+            <li>The stack is what makes subtests and self-testing easy.</li>
+        </ul>
+    </dd>
+
+    <dt id="hub">Hub</dt>
+    <dd>
+        <h2>Test::Stream::Hub</h2>
+
+        The hub object handles 4 things in this order:
+        <ol>
+            <li>Event modification hooks.</li>
+            <li>Track event driven state changes.</li>
+            <li>Route events to the formatter.</li>
+            <li>Event listener hooks.</li>
+        </ol>
+
+        Things the hub has to consider:
+
+        <ul>
+            <li>IPC, do events go to another thread/process?</li>
+            <li>Has the PID or thread ID changed?</li>
+            <li>Performance, most tools generate at least 1 event object.</li>
+            <li>Are tests currently failing?</li>
+            <li>Does the event change the state to failing?</li>
+        </ul>
+    </dd>
+
+    <dt id="state">State</dt>
+    <dd>
+        <h2>Test::Stream::State</h2>
+
+        The test state has the following attributes:
+        <ul>
+            <li>Current test count.</li>
+            <li>Current failure count.</li>
+            <li>The test plan.</li>
+            <li>Have we bailed out?</li>
+            <li>Has the test ended?</li>
+            <li>Is the test currently passing?</li>
+            <li>Skip reason (if applicable)</li>
+        </ul>
+    </dd>
+
+    <dt id="formatter">Formatter</dt>
+    <dd>
+        <h2>Test::Stream::Formatter::*</h2>
+
+        Currently there is only one formatter, the TAP formatter.
+
+        <p>
+
+        Formatters are easy to create:
+        <script class="code">
+            package Test::Stream::Formatter::Foo;
+
+            sub write {
+                my ($self, $event, $number) = @_;
+
+                # Events are blessed objects, so this is only useful as
+                # debugging
+                print "$number: Got event '$event'\n";
+            }
+        </script>
+
+        <ul>
+            <li>Any module can implement a 'write' method.</li>
+            <li>Formatter gets all events.</li>
+            <li>The test number is bumped on 'Ok' events.</li>
+            <li>A single test number can have multiple events.</li>
+        </ul>
+    </dd>
+
+    <dt id="ipc">IPC</dt>
+    <dd>
+        <h2>Test::Stream::IPC</h2>
+
+        The IPC system is responsible for sending events to the correct process
+        or thread in tests that fork or spawn threads.
+
+        <ul>
+            <li>IPC system makes use of a driver.</li>
+            <li>The default driver uses a temp dir and writes events to files.</li>
+            <li>Anyone can write a driver.</li>
+            <li>Works for ithreads, forking, or both at once.</li>
+            <li>You can have more than one.</li>
+            <li>Typically there is a global instance in the Sync package.</li>
+        </ul>
+    </dd>
+
+    <dt id="context">Context</dt>
+    <dd>
+        <h2>Test::Stream::Context</h2>
+
+        The context object is the Test::Stream <b>linchpin</b>.
+
+        <p>
+
+        The context object ties everything together:
+        <ul>
+            <li>Finds the current hub for you.</li>
+            <li>Tracks the file+line number for error reporting.</li>
+            <li>Makes it possible to nest tools sanely (replaces $Level).</li>
+            <li>Primary interface to generating event objects.</li>
+            <li>Has several hooks tools can use.</li>
+        </ul>
+
+        Conception of the context object happened fairly early in development.
+        The idea started as a way to address the shortcommings of $Level.
+        Schwern and I had conversed about how awful $Level was several times
+        with no resolution. One day the concept came to me, much of the
+        Test::Stream architecture is a result of the context object concept.
+    </dd>
+
+    <dt id="event">Event</dt>
+    <dd>
+        <h2>Test::Stream::Event</h2>
+
+        Events should be used for any of the following:
+        <ul>
+            <li>Change state (fail/pass/plan)</li>
+            <li>Produce output</li>
+            <li>Communicate between processes or threads</li>
+        </ul>
+
+        The core event types are:
+        <dl class="short">
+            <dt id="ok">Ok</dt>
+            <dd>Represents a pass or fail result.</dd>
+
+            <dt id="plan">Plan</dt>
+            <dd>Represents the expectations of a test file.</dd>
+
+            <dt id="diag">Diag</dt>
+            <dd>Critical Diagnostics intended for humans.</dd>
+
+            <dt id="note">Note</dt>
+            <dd>Informational Diagnostics intended for humans.</dd>
+
+            <dt id="exception">Exception</dt>
+            <dd>If a tool trapped an exception it can use this to cause a test
+            failure, even across processes and threads.</dd>
+
+            <dt id="bail">Bail</dt>
+            <dd>Used to abort all testing.</dd>
+
+            <dt id="subtest">Subtest</dt>
+            <dd>This is a subclass of Ok, used for subtests to track sub-events.</dd>
+
+            <dt id="waiting">Waiting</dt>
+            <dd>Used internally by the IPC system to note that the main
+            process/thread is waiting.</dd>
+        </dl>
+    </dd>
+</dl>

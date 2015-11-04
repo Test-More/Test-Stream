@@ -1,0 +1,162 @@
+<dl class="listnav">
+    <dt id="loader">Loader</dt>
+    <dd>
+        <h2>The Test::Stream Loader</h2>
+
+        <script class="code">
+            use Test::Stream(
+                '-Bundle',                      # Bundle ('-')
+                ':Project',                     # Project specific bundle (':')
+                'MyPlugin',                     # Plugin name (no prefix)
+                '+Fully::Qualified::Plugin',    # (Plugin in unusual path)
+                'SomePlugin' => ['arg1', ...],  # (Plugin with args)
+                '!UnwantedPlugin',              # Blacklist this plugin
+                'WantEverything' => '*',        # Load the plugin with all options
+                'option' => ...,                # Option to the loader
+            );
+        </script>
+
+        <ul>
+            <li>Test::Stream (the package) is just a loader.</li>
+            <li>You <b>MUST</b> choose at least 1 plugin or bundle.</li>
+            <li>There are no defaults.</li>
+            <li>You are <u>not</u> required to use the loader.</li>
+        </ul>
+    </dd>
+
+    <dt id="plugins">Plugins</dt>
+    <dd>
+        <h2>Plugins</h2>
+
+        <ul>
+            <li>A tool for Test::Stream will typically be written as a plugin.</li>
+            <li>Plugins typically live in the Test::Stream::Plugin::* namespace.</li>
+            <li>Plugins typically export testing functions.</li>
+            <li>Plugins can also be used to configure the internals.</li>
+            <li>You can blacklist a plugin to ensure it does not load</li>
+        </ul>
+
+        Notable Plugins:
+        <dl class="short">
+            <dt>Compare</dt>    <dd>Deep comparison tools</dd>
+            <dt>Core</dt>       <dd>Essential/simple tools</dd>
+            <dt>ExitSummary</dt><dd>End of test diagnostics</dd>
+            <dt>IPC</dt>        <dd>IPC for multi-thread/multi-proc support</dd>
+            <dt>Intercept</dt>  <dd>Used to test event generators</dd>
+            <dt>Mock</dt>       <dd>Easy and powerful mocking plugin</dd>
+            <dt>Spec</dt>       <dd>RSpec style test constructs</dd>
+            <dt>TAP</dt>        <dd>Enable TAP output formatter</dd>
+            <dt>UTF8</dt>       <dd>Turn on UTF8 (IO handles, formatters, current file)</dd>
+        </dl>
+    </dd>
+
+    <dt id="bundles">Bundles</dt>
+    <dd>
+        <h2>Bundles</h2>
+
+        <ul>
+            <li>Bundles are lists of plugins and their load options.</li>
+            <li>Anyone can write a bundle.</li>
+            <li>A bundle is a way to define a consistent set of plugins.</li>
+            <li>Bundles should not define or provide  their own tools.</li>
+        </ul>
+
+        <h3>Project Bundles</h3>
+
+        You can create project specific bundles in t/lib. These bundles will
+        not be installed, but are usable in all the projects tests.
+
+        <script class="code">
+            # Project specific bundle (':' prefix)
+            use Test::Stream ':Project';
+        </script>
+
+    </dd>
+
+    <dt id="options">Options</dt>
+    <dd>
+        <h2>Options</h2>
+
+        <ul>
+            <li>Any all lowercase item passed to import are options.</li>
+            <li>Options are loader-specific.</li>
+            <li>Loaders can define or redefine any options they want.</li>
+            <li>Options can effect the parsing of the argument list.</li>
+            <li>Test::Stream has a handful of options that are plugin shortcuts.</li>
+            <li>Test::Stream subclasses define options as methods.</li>
+            <li>Use fo an unrecognized option produces and exception.</li>
+        </ul>
+
+        <h3>Predefined options</h3>
+
+        <dl class="short">
+            <dt>class</dt><dd>Shortcut for the 'Class' plugin.</dd>
+            <dt>skip_without</dt><dd>Shortcut for the SkipWithout plugin.</dd>
+            <dt>srand</dt><dd>Shortcut to the SRand plugin.</dd>
+        </dl>
+
+        In this case these are shortcuts because supplying arguments to the
+        plugins is easier.
+    </dd>
+
+    <dt id="subclass">Subclass</dt>
+    <dd>
+        <h2>Subclass</h2>
+
+        <ul>
+            <li>You can subclass Test::Stream to write your own loader.</li>
+            <li>Custom loaders can specify defaults.</li>
+            <li>Custom loaders can add or replace options.</li>
+        </ul>
+
+        <script class="code">
+            package My::Loader;
+            use parent 'Test::Stream';
+
+            # Any import arguments can go here
+            sub default { qw/CORE UTF8 -MyBundle .../ }
+
+            # Define the 'my_opt' option
+            sub opt_my_opt {
+                my %params = @_;
+                my ($list, $args, $order) = @params{qw/list args order/};
+
+                my $next_import_arg = shift @$list;
+
+                # Add the plugin to the order array unless we already have args for it
+                push @{$params{order}} => 'My::Plugin' unless $args->{'My::Plugin'};
+
+                # Use the next import arg as the plugins import arg
+                $args->{'Test::Stream::Plugin::Class'} = [$next_import_arg];
+            }
+        </script>
+    </dd>
+    <dt id="no_sugar">No&nbsp;Sugar</dt>
+    <dd>
+        <h2>Hold the sugar!</h2>
+
+        The loader is optional, you do not need to use it!
+
+        <script class="code">
+            # Plugins can be loaded directly:
+            use Test::Stream::Plugin::Core qw/done_testing/;
+
+            # So can bundles:
+            use Test::Stream::Bundle::MyBundle;
+
+            # You can write tools directly in your test
+            use Test::Stream::Context qw/context/;
+            sub ok($;$) {
+                my ($bool, $name) = @_;
+                my $ctx = context();
+                $ctx->ok($bool, $name);
+                $ctx->release;
+                return $bool ? 1 : 0;
+            }
+
+            ok(...);
+
+            done_testing;
+        </script>
+    </dd>
+</dl>

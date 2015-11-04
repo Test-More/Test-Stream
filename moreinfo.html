@@ -2,35 +2,32 @@
     <dt id="theplan">The Plan</dt>
     <dd>
         <h2>The Plan</h2>
-        <h3>Experimental Phase (we are here)</h3>
+
+        <h3>Stabalization Phase</h3>
 
         <ul>
-            <li>Test::Stream can still change, may break compat between releases.</li>
-            <li>Test::Builder dev releases to keep in sync.</li>
-            <li>Please try it and let us know what sucks.</li>
-            <li>DO NOT CONVERT TOOLS NOW! (except as an experiment)</li>
-            <li>DO NOT USE IN PRODUCTION! (unless you are ok with things breaking)</li>
+            <li>API stabalized. &#10004;</li>
+            <li>Test::Stream can be used in production for new tools. &#10004;</li>
         </ul>
+        <i>Test::Stream and Test::Builder based tools are not yet compatible</i>
 
         <h3>Punchlist Phase</h3>
 
         <ul>
-            <li>API stabalized.</li>
-            <li>Focus on punchlist items from Berlin 2015 hackathon.</li>
-            <li>Merge Test-Simple and Test-Stream dists.</li>
-            <li>Put it in perl-bleed</li>
-            <li><i>Possible name change to Test2</i></li>
+            <li>Make Test::Builder use Test::Stream internals. <i>(dev releases)</i>&#10004;</li>
+            <li>Put it in perl-blead for testing. <i>(TPF grant requested)</i></li>
+            <li>Focus on punchlist items from Berlin 2015 hackathon. <i>(todo)</i></li>
         </ul>
 
-        <h3>Stable Phase</h3>
+        <h3>Completion Phase</h3>
 
         <ul>
-            <li>Use it!</li>
-            <li>Write new tools!</li>
+            <li>Release Test::Builder using Test::Stream internals as stable.</li>
+            <li>Put Test::Stream and the new Test::Builder in the next perl release.</li>
         </ul>
     </dd>
 
-    <dt id="info">Info</dt>
+    <dt id="resources">Resources</dt>
     <dd>
         <h2>Resources</h2>
         <dl class="descriptive_points">
@@ -46,5 +43,79 @@
             <dt>IRC</dt>
             <dd><a href="irc://irc.perl.org/#test-stream">#test-stream on irc.perl.org</a></dd>
         </dl>
+    </dd>
+
+    <dt id="extras">Extras</dt>
+    <dd>
+        <dl class="sub_list">
+            <dt id="specdeclare">SpecDeclare</dt>
+            <dd>
+                <h2>Test::Stream::Plugin::SpecDeclare</h3>
+
+                This is a Devel::Declare enhancement to Test::Stream::Plugin::Spec.
+
+                <br />
+                <br />
+
+                <div id="spec_declare">
+                    <ul>
+                        <li><a href="#vanilla">Vanilla</a></li>
+                        <li><a href="#declare">Spec::Declare</a></li>
+                    </ul>
+                    <div id="vanilla">
+                        <script class="code">
+                        use Test::Stream qw/-V1 Spec/;
+
+                        describe "some stuff" => sub {
+
+                            # So many operators...
+                            tests foo => {todo => 'why'}, sub {
+                                ok(0, "blah");
+                            }; # <-- do not forget semicolon!
+
+                        }; # <-- another one!
+                        </script>
+                    </div>
+                    <div id="declare">
+                        <script class="code">
+                        use Test::Stream qw/-V1 -SpecDeclare/;
+
+                        describe "some stuff" {  # <-- Can still quote the name
+
+                            # just like sub keyword!
+                            tests foo (todo => 'why') {
+                                ok(0, "blah");
+                            } # <-- no semicolon needed!
+
+                        } # <-- none here either!
+                        </script>
+                    </div>
+                </div>
+
+                <script>$("#spec_declare").tabs();</script>
+            </dd>
+
+            <dt id="fennec2">Fennec2</dt>
+            <dd>
+                <h2>Fennec2</h3>
+
+                <ul>
+                    <li>Work in progress, not on cpan yet. Ready soon...</li>
+                    <li>Bundle that mimicks original Fennec (mostly)</li>
+                    <li>Supports isolating tests via thread or fork</li>
+                    <li>Supports async testing to run test blocks concurrently</li>
+                </ul>
+
+                Notable differences from Fennec 1:
+
+                <ul>
+                    <li>Test blocks are not async by default (iso => $bool to toggle)</li>
+                    <li>Test blocks are not isolated by default (async => $bool to toggle)</li>
+                    <li>async can be run concurrently, but does not have to be</li>
+                    <li>isolation must run in a child proc or thread, if neither is available it skips</li>
+                    <li>neither 'iso' or 'async' implies the other</li>
+                    <li>Test::Stream::Plugin::Mock is used instead of Mock::Quick (it is better)</li>
+                </ul>
+            </dd>
     </dd>
 </dl>
