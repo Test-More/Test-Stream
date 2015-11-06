@@ -469,7 +469,7 @@ table.benchmark td, table.benchmark th {
     padding-right: 8px;
 }
 
-dl.short {
+dl.short, dl.medium {
     list-style: none;
     margin: 0;
     padding: 0px;
@@ -477,7 +477,7 @@ dl.short {
     overflow: hidden;
 }
 
-dl.short dt {
+dl.short dt, dl.medium dt {
     float: left;
     font-weight: bold;
     padding-left: 10px;
@@ -487,7 +487,11 @@ dl.short dt {
     clear: left;
 }
 
-dl.short dd {
+dl.short dd, dl.medium dd {
     float: left;
     clear: right;
+}
+
+dl.medium dt {
+    width: 100px;
 }

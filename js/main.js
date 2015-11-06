@@ -1,34 +1,7 @@
 $( function() {
-    $( '.nav' ).click( function() {
+    $( '.nav' ).each( function() {
         var item = $(this)
-
-        $('#subnav ul').empty();
-        $('ul.second_subnav').detach();
-        $('#view').empty();
-        $('#error_window').click( function() {
-            $(this).hide();
-        });
-
-        jQuery.ajax(
-            item.attr( 'id' ) + '.html',
-            {
-                dataType: 'html',
-                success: function( data ) {
-                    $( '.nav' ).removeClass( 'active' )
-                    item.addClass( 'active' )
-
-                    build_content( data );
-                    fixView();
-                },
-                error: function() {
-                    $( '#error_window' ).show();
-                    $( '#error_window ul.errors' ).append( "<li>Error loading page</li>" )
-                    $( '.nav' ).removeClass( 'active' )
-                    item.addClass( 'active' )
-                    fixView();
-                }
-            }
-        )
+        setNav(item, item.attr( 'id' ));
     });
 
     var hash = window.location.hash
@@ -60,6 +33,40 @@ $( function() {
         }
     });
 })
+
+function setNav(elem, id) {
+    elem.click( function() {
+        var item = $(this)
+
+        $('#subnav ul').empty();
+        $('ul.second_subnav').detach();
+        $('#view').empty();
+        $('#error_window').click( function() {
+            $(this).hide();
+        });
+
+        jQuery.ajax(
+            id + '.html',
+            {
+                dataType: 'html',
+                success: function( data ) {
+                    $( '.nav' ).removeClass( 'active' )
+                    item.addClass( 'active' )
+
+                    build_content( data );
+                    fixView();
+                },
+                error: function() {
+                    $( '#error_window' ).show();
+                    $( '#error_window ul.errors' ).append( "<li>Error loading page</li>" )
+                    $( '.nav' ).removeClass( 'active' )
+                    item.addClass( 'active' )
+                    fixView();
+                }
+            }
+        )
+    });
+}
 
 function fixView() {
     var height = $('#subnav').outerHeight();
@@ -173,6 +180,10 @@ function process_samples( container ) {
         $(this).replaceWith( build_code( $(this).text() ));
     });
 
+    container.find( 'script.output' ).each( function() {
+        $(this).replaceWith( build_output( $(this).text() ));
+    });
+
     container.find( 'div.code' ).each( function() {
         var list = $(this);
         jQuery.ajax(
@@ -263,7 +274,7 @@ function build_sub_list( pid, list ) {
     if ( !hash ) hash = '#introduction';
     var nav = hash.split('-');
 
-    list.find( 'dt' ).each( function() {
+    list.children( 'dt' ).each( function() {
         var navkey = $(this).text();
         var section = $(this).next();
         process_samples( section );

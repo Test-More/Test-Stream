@@ -36,18 +36,22 @@
             <li>You can blacklist a plugin to ensure it does not load</li>
         </ul>
 
-        Notable Plugins:
-        <dl class="short">
-            <dt>Compare</dt>    <dd>Deep comparison tools</dd>
-            <dt>Core</dt>       <dd>Essential/simple tools</dd>
-            <dt>ExitSummary</dt><dd>End of test diagnostics</dd>
-            <dt>IPC</dt>        <dd>IPC for multi-thread/multi-proc support</dd>
-            <dt>Intercept</dt>  <dd>Used to test event generators</dd>
-            <dt>Mock</dt>       <dd>Easy and powerful mocking plugin</dd>
-            <dt>Spec</dt>       <dd>RSpec style test constructs</dd>
-            <dt>TAP</dt>        <dd>Enable TAP output formatter</dd>
-            <dt>UTF8</dt>       <dd>Turn on UTF8 (IO handles, formatters, current file)</dd>
-        </dl>
+        <script class="code">
+            package Test::Stream::Plugin::Foo;
+            use strict;
+            use warnings;
+
+            # gives us our 'import' sub
+            use Test::Stream::Plugin;
+
+            sub load_ts_plugin {
+                my $class = shift;
+                my $caller = $caller; # Array ref of caller(N) results
+                my @args = @_;
+
+                ...
+            }
+        </script>
     </dd>
 
     <dt id="bundles">Bundles</dt>
@@ -60,6 +64,15 @@
             <li>A bundle is a way to define a consistent set of plugins.</li>
             <li>Bundles should not define or provide  their own tools.</li>
         </ul>
+
+        <h3>Example Bundle</h3>
+
+        <script class="code">
+            package Test::Stream::Bundle::V1;
+            use Test::Stream::Bundle;
+
+            sub plugins { return qw{IPC TAP Core Compare} }
+        </script>
 
         <h3>Project Bundles</h3>
 
@@ -78,7 +91,7 @@
         <h2>Options</h2>
 
         <ul>
-            <li>Any all lowercase item passed to import are options.</li>
+            <li>Any all lowercase item passed to import is an option.</li>
             <li>Options are loader-specific.</li>
             <li>Loaders can define or redefine any options they want.</li>
             <li>Options can effect the parsing of the argument list.</li>
@@ -87,7 +100,7 @@
             <li>Use fo an unrecognized option produces and exception.</li>
         </ul>
 
-        <h3>Predefined options</h3>
+        <h3>existing options</h3>
 
         <dl class="short">
             <dt>class</dt><dd>Shortcut for the 'Class' plugin.</dd>
