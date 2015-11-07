@@ -326,7 +326,8 @@ sub cmp_ok($$$;$@) {
 
     my $ctx = context();
 
-    # Don't use context, use the place we are called.
+    # warnings and syntax errors should report to the cmp_ok call, not the test
+    # context, they may not be the same.
     my ($pkg, $file, $line) = caller;
 
     my $type = $OPS{$op};
