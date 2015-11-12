@@ -114,331 +114,48 @@
 
     <dt id="compare">Compare</dt>
     <dd>
-        <dl class="sub_list">
-            <dt id="tools">Tools</dt>
+        <h2>Test::Stream::Plugin::Compare</h2>
+
+        The compare plugin is the interface into Test::Stream's powerful comparison library.
+
+        <p>
+
+        The main things to note are these functions:
+
+        <dl>
+            <dt>is()</dt>
             <dd>
-                <h2>Test::Stream::Plugin::Compare</h2>
-
-                The compare plugin is the interface into Test::Stream's powerful comparison library.
-
-                <p>
-
-                The main things to note are these functions:
-
-                <dl>
-                    <dt>is()</dt>
-                    <dd>
-                        'is()' is a unification of Test::More's 'is()' and
-                        'is_deeply()'.  It can take simple string, or complex
-                        data structures.
-                    </dd>
-
-                    <dt>&nbsp;</dt><dd></dd>
-
-                    <dt>like()</dt>
-                    <dd>
-                        'like()' is a combination of Test::More's 'like()' and
-                        'is_deeply()'. It compares data structures deeply, but only
-                        checks the fields specified in the expect structure, ignoring
-                        anything extra. Regexes can also be used for any field.
-                    </dd>
-                </dl>
-
-                <script class="code">
-                    is('aaa', 'aaa', "pass");
-                    is('aaa', 'bbb', "fail");
-
-                    is({foo => 'bar'}, {foo => 'bar'}, "pass deep");
-
-                    like('foo', qr/o/, "pass");
-                    like('foo', qr/a/, "fail");
-
-                    like(
-                        { foo => 'aaa', bar => 'bbb' },
-                        { foo => qr/a/ },
-                        "Only check the fields we ask about (pass)"
-                    );
-                </script>
-
+                'is()' is a unification of Test::More's 'is()' and
+                'is_deeply()'.  It can take simple string, or complex
+                data structures.
             </dd>
 
-            <dt id="advanced">Advanced</dt>
+            <dt>&nbsp;</dt><dd></dd>
+
+            <dt>like()</dt>
             <dd>
-                <h2>Advanced comparisons</h2>
-
-                <ul>
-                    <li>The '$expect' structure can be simple values or references</li>
-                    <li>With like() a regex in '$expect' will be used to verify the value in '$got'</li>
-                    <li>when a tool encounters a custom check it will use it</li>
-                    <li>Some common check types have shortcuts you can use.</li>
-                </ul>
-
-                <script class="code">
-is(
-    { foo => 'xxx', bar => 'yyy', bat => 'zzz' },
-    hash {
-        field foo => match qr/z/; # Pattern Match
-        field bar => 'yyz';       # Exact match (eq)
-        field baz => T();         # Check for true
-        field bat => DNE();       # Does Not Exist
-    },
-    "Check a hash (will fail)"
-);
-                </script>
-
-                <script class="output">
-not ok 1 - Check a hash (will fail)
-# Failed test 'Check a hash (will fail)'
-# at test.pl line 9.
-# +-------+------------------+---------+------------------+------+
-# | PATH  | GOT              | OP      | CHECK            | LNs  |
-# +-------+------------------+---------+------------------+------+
-# |       | HASH(0x1600f30)  |         | <HASH>           | 3, 8 |
-# | {foo} | xxx              | =~      | (?^:z)           | 4    |
-# | {bar} | yyy              | eq      | yyz              | 5    |
-# | {baz} | <DOES NOT EXIST> | TRUE()  | TRUE             | 6    |
-# | {bat} | zzz              | !exists | <DOES NOT EXIST> | 7    |
-# +-------+------------------+---------+------------------+------+
-                </script>
-            </dd>
-
-            <dt id="shortcut">Shortcut</dt>
-            <dd>
-                <h2>Shortcuts</h2>
-
-                Shortcuts for some common types of checks:
-
-                <dl class="short">
-                    <dt>T()</dt>    <dd>Check for a True value</dd>
-                    <dt>F()</dt>    <dd>Check for a false (but existant) value</dd>
-                    <dt>D()</dt>    <dd>Check for a defined value</dd>
-                    <dt>DNE()</dt>  <dd>Check that no value exists</dd>
-                    <dt>FDNE()</dt> <dd>Check for either false or DNE</dd>
-                </dl>
-
-                <script class="code">
-                    is("foo", T(), 'just use ok for this');
-                    is([qw/a b c/], [T,T,T], "3 array values");
-
-                    like([qw/a b c/], [T,T,T,DNE], "ONLY 3 array values");
-                    like({}, {foo => DNE}, "Check that the 'foo' key does not exist");
-                </script>
-
-                These are most useful for checking bounds in a 'like', or
-                ensuring something is present, but not caring what it is.
-            </dd>
-
-            <dt id="pattern">Pattern</dt>
-            <dd>
-                <h2>Pattern Matching</h2>
-
-                <dl class="short">
-                    <dt>match</dt>    <dd>Check that the value matches the pattern</dd>
-                    <dt>mismatch</dt> <dd>Check that the value does not match the pattern</dd>
-                </dl>
-
-                <script class="code">
-                    is("foo", match qr/o/, "same as like()");
-                    is("foo", mismatch qr/a/, "same as unlike()");
-
-                    is({x => 'xxx'}, {x => match qr/x/}, "Regex check deep in an is()");
-                </script>
-
-                <ul>
-                    <li>'like()' will convert any regexes into 'match' checks for you.</li>
-                    <li>'is()' will compare regexes in their string representation.</li>
-                    <li>Both will use pattern matching when given a 'match' or
-                        'mismatch' check.</li>
-                </ul>
-            </dd>
-
-            <dt id="custom">Custom</dt>
-            <dd>
-                <h2>Custom Checks</h2>
-                <dl class="short">
-                    <dt>string</dt>    <dd>Explicit string compare</dd>
-                    <dt>number</dt>    <dd>Explicit number compare</dd>
-                    <dt>validator</dt> <dd>Custom sub as a check</dd>
-                    <dt>exact_ref</dt> <dd>Check for an exact reference</dd>
-                </dl>
-
-                <script class="code">
-                    my $x = {};
-                    is(
-                        {
-                            foo => "string",
-                            bar => "0.0",    # float
-                            baz => sub { 42 },
-                            bat => $x,
-                        },
-                        {
-                            foo => string("strings", negate => 1),
-                            bar => number(0),
-                            baz => validator(sub { $_->() == 42 }),
-                            bat => exact_ref($x),
-                        },
-                    );
-                </script>
-            </dd>
-
-            <dt id="sets">Sets</dt>
-            <dd>
-                <h2>Set Checks</h2>
-
-                <dl class="short">
-                    <dt>in_set</dt>     <dd>Check that the value is in the set</dd>
-                    <dt>not_in_set</dt> <dd>Check that the value is not in the set</dd>
-                    <dt>check_set</dt>  <dd>Check that the value matches everything in the set</dd>
-                </dl>
-
-                <script class="code">
-                    is(
-                        {foo => 'foo', bar => 'bar', baz => 'baz'}
-                        hash {
-                            field foo => in_set('foo', 'food', 'fud');
-                            field bar => not_in_set('foo', 'food', 'fud');
-                            field baz => check_set(
-                                match qr/a/,
-                                match qr/b/,
-                                mismatch qr/x/,
-                            );
-                        },
-                    );
-                </script>
-            </dd>
-
-            <dt id="arrays">Arrays</dt>
-            <dd>
-                <h2>Array Checks</h2>
-
-                <dl class="short">
-                    <dt>array</dt> <dd>Declare an array check</dd>
-                    <dt>item</dt>  <dd>Declare an array item</dd>
-                    <dt>filter_items</dt> <dd>Apply a filter to the remaining array items</dd>
-                    <dt>end</dt>   <dd>Declare the end of the array</dd>
-                </dl>
-
-                <script class="code">
-                    like(
-                        ['a' .. 'f'],
-                        array {
-                            item 'a';
-                            item match qr/b/;
-                            item 3 => 'd';
-                            filter_items { grep { $_ ne 'e' } @_ };
-                            item 'f'; # item 4 after filter
-                            end; # enforce array bound, like() normally does not
-                        },
-                    );
-                </script>
-            </dd>
-
-            <dt id="hashes">Hashes</dt>
-            <dd>
-                <h2>Hash Checks</h2>
-                <dl class="short">
-                    <dt>hash</dt>  <dd>Declare a hash</dd>
-                    <dt>field</dt> <dd>Declare a hash field</dd>
-                    <dt>end</dt>   <dd>Declare that there are no more fields</dd>
-                </dl>
-
-                <script class="code">
-                    like(
-                        {foo => 'foo', bar => 'bar', baz => 'baz'},
-                        hash {
-                            field foo => 'foo';
-                            field bar => qr/a/; # Regex is automatically a check in like()
-                            field baz => T();   # Any true value will do
-                            field bat => DNE(); # 'bat' must not exist
-                            end; # enforce no extra fields, like() normally ignores extra
-                        },
-                    );
-                </script>
-            </dd>
-
-            <dt id="meta">Meta</dt>
-            <dd>
-                <h2>Meta Checks</h2>
-                <dl class="short">
-                    <dt>meta</dt> <dd>Declare a meta check</dd>
-                    <dt>prop</dt> <dd>Declare a meta property to check</dd>
-                </dl>
-
-                <script class="code">
-                    is(
-                        bless({a => 1}, 'Foo::Bar'),
-                        meta {
-                            prop blessed => 'Foo::Bar';
-                            prop reftype => 'HASH';
-                            prop this    => hash { field a => 1; };
-                            prop size    => 1; # Number of keys
-                        },
-                    );
-                </script>
-            </dd>
-
-            <dt id="objects">Objects</dt>
-            <dd>
-                <h2>Object Checks</h2>
-                <dl class="short">
-                    <dt>object</dt> <dd>Declare an object check</dd>
-                    <dt>call</dt>   <dd>Declare an object method result</dd>
-                    <dt>prop</dt>   <dd>Declare a meta property</dd>
-                    <dt>field</dt>  <dd>Declare a hash field (if object is a hash)</dd>
-                    <dt>item</dt>   <dd>Declare an array item (if object is an array)</dd>
-                </dl>
-
-                <b>Note:</b> <i>methods are called in scalar context</i>
-
-                <script class="code">
-                    is(
-                        bless({a => 1}, 'Foo::Bar'),
-                        object {
-                            prop blessed => 'Foo::Bar';
-                            field a => 1;
-                            call  a => 1; # Result of the 'a' method
-
-                            # Can write custom methods to call
-                            call sub { [shift->list] } => [...];
-                        },
-                    );
-                </script>
-            </dd>
-
-            <dt id="events">Events</dt>
-            <dd>
-                <h2>Event Checks</h2>
-
-                <ul>
-                    <li>Used to validate Test::Stream events.</li>
-                    <li>Has everything object checks do.</li>
-                    <li>Tells you event generation line numbers.</li>
-                    <li>Extra meta-checks (line number, file, etc)</li>
-                </ul>
-
-                This is best when combined with intercept:
-
-                <script class="code">
-                    is(
-                        intercept {
-                            ok(1, 'pass');
-                            ok(0, 'fail');
-                        },
-                        array {
-                            event Ok => { pass => 1, name => 'pass' };
-                            event Ok => sub {
-                                call pass => 0;
-                                call name => 'fail';
-                                call diag => [ qr/Test Failed/ ];
-                                prop file => __FILE__;
-                                prop line => 4;
-                                prop subname => 'Test::Stream::Plugin::Core::ok';
-                            };
-                        }
-                    );
-                </script>
+                'like()' is a combination of Test::More's 'like()' and
+                'is_deeply()'. It compares data structures deeply, but only
+                checks the fields specified in the expect structure, ignoring
+                anything extra. Regexes can also be used for any field.
             </dd>
         </dl>
+
+        <script class="code">
+            is('aaa', 'aaa', "pass");
+            is('aaa', 'bbb', "fail");
+
+            is({foo => 'bar'}, {foo => 'bar'}, "pass deep");
+
+            like('foo', qr/o/, "pass");
+            like('foo', qr/a/, "fail");
+
+            like(
+                { foo => 'aaa', bar => 'bbb' },
+                { foo => qr/a/ },
+                "Only check the fields we ask about (pass)"
+            );
+        </script>
     </dd>
 
     <dt id="spec">Spec</dt>
@@ -469,137 +186,34 @@ not ok 1 - Check a hash (will fail)
 
     <dt id="mock">Mock</dt>
     <dd>
-        <dl class="sub_list">
-            <dt id="overview">Overview</dt>
-            <dd>
-                <h2>Test::Stream::Plugin::Mock</h2>
+        <h2>Test::Stream::Plugin::Mock</h2>
 
-                Test::Stream comes with a very powerful mocking library.
+        This plugin is the primary interface for Test::Stream's powerful
+        mocking library.
 
-                <ul>
-                    <li>Based off of Mock::Quick's good ideas</li>
-                    <li>Fixes API issues from Mock::Quick</li>
-                    <li>Scoped Mocking</li>
-                    <li>Adding and Overriding are seperate</li>
-                </ul>
+        <ul>
+            <li>Can mock real classes</li>
+            <li>Can generate anonymous classes</li>
+            <li>Mocking is lexical!</li>
+            <li>You get an object to control mocking</li>
+        </ul>
 
-                <script class="code">
-                    my $m = mock ... => (
-                        add => [ new_method => sub { ... }, ... ],
+        <script class="code">
+            my $m = mock ... => (
+                add => [ new_method => sub { ... }, ... ],
 
-                        override => [ replace_method => sub { ... }, ... ],
-                    );
+                override => [ replace_method => sub { ... }, ... ],
+            );
 
-                    ...
+            ...
 
-                    $m->add(foo => sub { 'FOO' });
-                    $m->override(foo => sub { 'foo' });
+            $m->add(foo => sub { 'FOO' });
+            $m->override(foo => sub { 'foo' });
 
-                    ...
+            ...
 
-                    $m = undef; # No more mocking
-                </script>
-            </dd>
-
-            <dt id="classes">Classes</dt>
-            <dd>
-                <h2>Mocking Classes</h2>
-
-                You can mock a class directly:
-                <script class="code">
-                    my $mock = mock 'Foo::Bar' => (
-                        add => [ new_method => sub { ... }, ... ],
-
-                        override => [ replace_method => sub { ... }, ... ],
-                    );
-                </script>
-
-                You can also mock a class as gathered from an instance of the class:
-                <script class="code">
-                    my $mock = mock $instance => ( ... );
-                </script>
-
-            </dd>
-
-            <dt id="objects">Objects</dt>
-            <dd>
-                <h2>Mocking Objects</h2>
-
-                <ul>
-                    <li>A mocked object is an object with an anonymous class.</li>
-                    <li>Methods are typically auto-vivified as read/write accessors.</li>
-                    <li>You can add/remove methods as needed.</li>
-                    <li>Great for shoving into a place that just needs any object.</li>
-                </ul>
-
-                <script class="code">
-                    # Just an empty object
-                    $obj = mock();
-
-                    # Object from hash
-                    $obj = mock { foo => 1, bar => 2 };
-
-                    # Vivify the accessor, set it to 1
-                    $obj->xxx(1);
-
-                    # prints 1
-                    print $obj->xxx;
-                </script>
-            </dd>
-
-            <dt id="mock">$mock</dt>
-            <dd>
-                <h2>$mock Object Methods</h2>
-
-                The $mock object itself has several useful methods:
-
-                <dl class="short">
-                    <dt>add</dt>        <dd>Add a symbol</dd>
-                    <dt>override</dt>   <dd>override a symbol</dd>
-                    <dt>restore</dt>    <dd>restore a symbol (pop)</dd>
-                    <dt>reset</dt>      <dd>reset symbol to original</dd>
-                    <dt>reset_all</dt>  <dd>undo all mocking</dd>
-                    <dt>orig</dt>       <dd>get the original symbol</dd>
-                    <dt>current</dt>    <dd>get the current symbol</dd>
-                    <dt>before</dt>     <dd>new sub that calls custom code, then the original</dd>
-                    <dt>after</dt>      <dd>new sub that calls original sub, then your custom code</dd>
-                    <dt>around</dt>     <dd>new sub that calls your custom sub with the original as an arg</dd>
-                    <dt>autoload</dt>   <dd>turn on autovivification of accessors</dd>
-                    <dt>block_load</dt> <dd>prevent the real class from being loaded</dd>
-                    <dt>file</dt>       <dd>return the filename for the mocked class</dd>
-                    <dt>stash</dt>      <dd>get a reference to the mocked package stash</dd>
-                    <dt>parent</dt>     <dd>get the parent mock object if there is nested mocking</dd>
-                    <dt>child</dt>      <dd>get the child mock object if there is nested mocking</dd>
-                </dl>
-            </dd>
-
-            <dt id="spec">Spec</dt>
-            <dd>
-                <h2>Mock + Spec</h2>
-
-                <ul>
-                    <li>This plugin plays nicely with the Spec plugin.</li>
-                    <li>Mocks are treated like a before_each in void context.</li>
-                    <li>Mocks apply to the surrounding describe as well.</li>
-                </ul>
-
-                <script class="code">
-                    describe stuff => sub {
-                        # The mock specification
-                        mock 'My::Class' => (...);
-
-                        # Mock applies here, inside the describe block
-
-                        tests foo => sub {
-                            # Mock applies here inside any nested blocks, even though they run
-                            # later
-                        };
-                    };
-
-                    # Mock does not apply out here
-                </script>
-            </dd>
-        </dl>
+            $m = undef; # No more mocking
+        </script>
     </dd>
 
     <dt id="others">Others</dt>

@@ -1,0 +1,131 @@
+<dl class="listnav">
+    <dt id="overview">Overview</dt>
+    <dd>
+        <h2>Mocking Library</h2>
+
+        Test::Stream comes with a very powerful mocking library.
+
+        <ul>
+            <li>Based off of Mock::Quick's good ideas</li>
+            <li>Fixes API issues from Mock::Quick</li>
+            <li>Scoped Mocking</li>
+            <li>Adding and Overriding are seperate</li>
+        </ul>
+
+        <script class="code">
+            my $m = mock ... => (
+                add => [ new_method => sub { ... }, ... ],
+
+                override => [ replace_method => sub { ... }, ... ],
+            );
+
+            ...
+
+            $m->add(foo => sub { 'FOO' });
+            $m->override(foo => sub { 'foo' });
+
+            ...
+
+            $m = undef; # No more mocking
+        </script>
+    </dd>
+
+    <dt id="classes">Classes</dt>
+    <dd>
+        <h2>Mocking Classes</h2>
+
+        You can mock a class directly:
+        <script class="code">
+            my $mock = mock 'Foo::Bar' => (
+                add => [ new_method => sub { ... }, ... ],
+
+                override => [ replace_method => sub { ... }, ... ],
+            );
+        </script>
+
+        You can also mock a class as gathered from an instance of the class:
+        <script class="code">
+            my $mock = mock $instance => ( ... );
+        </script>
+
+    </dd>
+
+    <dt id="objects">Objects</dt>
+    <dd>
+        <h2>Mocking Objects</h2>
+
+        <ul>
+            <li>A mocked object is an object with an anonymous class.</li>
+            <li>Methods are typically auto-vivified as read/write accessors.</li>
+            <li>You can add/remove methods as needed.</li>
+            <li>Great for shoving into a place that just needs any object.</li>
+        </ul>
+
+        <script class="code">
+            # Just an empty object
+            $obj = mock();
+
+            # Object from hash
+            $obj = mock { foo => 1, bar => 2 };
+
+            # Vivify the accessor, set it to 1
+            $obj->xxx(1);
+
+            # prints 1
+            print $obj->xxx;
+        </script>
+    </dd>
+
+    <dt id="mock">$mock</dt>
+    <dd>
+        <h2>$mock Object Methods</h2>
+
+        The $mock object itself has several useful methods:
+
+        <dl class="short">
+            <dt>add</dt>        <dd>Add a symbol</dd>
+            <dt>override</dt>   <dd>override a symbol</dd>
+            <dt>restore</dt>    <dd>restore a symbol (pop)</dd>
+            <dt>reset</dt>      <dd>reset symbol to original</dd>
+            <dt>reset_all</dt>  <dd>undo all mocking</dd>
+            <dt>orig</dt>       <dd>get the original symbol</dd>
+            <dt>current</dt>    <dd>get the current symbol</dd>
+            <dt>before</dt>     <dd>new sub that calls custom code, then the original</dd>
+            <dt>after</dt>      <dd>new sub that calls original sub, then your custom code</dd>
+            <dt>around</dt>     <dd>new sub that calls your custom sub with the original as an arg</dd>
+            <dt>autoload</dt>   <dd>turn on autovivification of accessors</dd>
+            <dt>block_load</dt> <dd>prevent the real class from being loaded</dd>
+            <dt>file</dt>       <dd>return the filename for the mocked class</dd>
+            <dt>stash</dt>      <dd>get a reference to the mocked package stash</dd>
+            <dt>parent</dt>     <dd>get the parent mock object if there is nested mocking</dd>
+            <dt>child</dt>      <dd>get the child mock object if there is nested mocking</dd>
+        </dl>
+    </dd>
+
+    <dt id="spec">Spec</dt>
+    <dd>
+        <h2>Mock + Spec</h2>
+
+        <ul>
+            <li>This plugin plays nicely with the Spec plugin.</li>
+            <li>Mocks are treated like a before_each in void context.</li>
+            <li>Mocks apply to the surrounding describe as well.</li>
+        </ul>
+
+        <script class="code">
+            describe stuff => sub {
+                # The mock specification
+                mock 'My::Class' => (...);
+
+                # Mock applies here, inside the describe block
+
+                tests foo => sub {
+                    # Mock applies here inside any nested blocks, even though they run
+                    # later
+                };
+            };
+
+            # Mock does not apply out here
+        </script>
+    </dd>
+</dl>
