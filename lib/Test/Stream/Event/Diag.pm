@@ -19,23 +19,6 @@ sub init {
     }
 }
 
-sub to_tap {
-    my $self = shift;
-
-    my $msg = $self->{+MESSAGE};
-    return unless $msg;
-
-    $msg = "# $msg" unless $msg eq "\n";
-
-    chomp($msg);
-    $msg =~ s/\n/\n# /g;
-
-    return [
-        ($self->{+DEBUG}->no_diag ? OUT_TODO : OUT_ERR),
-        "$msg\n",
-    ];
-}
-
 1;
 
 __END__

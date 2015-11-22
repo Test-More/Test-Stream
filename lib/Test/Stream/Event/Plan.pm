@@ -37,24 +37,6 @@ sub init {
     }
 }
 
-sub to_tap {
-    my $self = shift;
-
-    my $max       = $self->{+MAX};
-    my $directive = $self->{+DIRECTIVE};
-    my $reason    = $self->{+REASON};
-
-    return if $directive && $directive eq 'NO PLAN';
-
-    my $plan = "1..$max";
-    if ($directive) {
-        $plan .= " # $directive";
-        $plan .= " $reason" if defined $reason;
-    }
-
-    return [OUT_STD, "$plan\n"];
-}
-
 sub update_state {
     my $self = shift;
     my ($state) = @_;
