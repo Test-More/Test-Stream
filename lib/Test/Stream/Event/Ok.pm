@@ -5,17 +5,15 @@ use warnings;
 use Scalar::Util qw/blessed/;
 use Carp qw/confess/;
 
-use Test::Stream::Formatter::TAP qw/OUT_STD OUT_TODO OUT_ERR/;
-
-use Test::Stream::Event::Diag();
-
 use base 'Test::Stream::Event';
 use Test::Stream::HashBase accessors => [qw/pass effective_pass name diag allow_bad_name/];
 
 sub init {
     my $self = shift;
 
-    confess("No debug info provided!") unless $self->{+DEBUG};
+    my $dbg = $self->{+DEBUG} or confess "No debug info provided!";
+
+    $dbg->alert("The 'Ok' event type is deprecated, use 'Pass' or 'Fail' instead");
 
     # Do not store objects here, only true or false
     $self->{+PASS} = $self->{+PASS} ? 1 : 0;

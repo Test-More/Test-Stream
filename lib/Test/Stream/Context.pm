@@ -15,7 +15,7 @@ my %LOADED = (
         require "Test/Stream/Event/$_.pm";
         my $pkg = "Test::Stream::Event::$_";
         ( $pkg => $pkg, $_ => $pkg )
-    } qw/Ok Diag Note Plan Bail Exception Waiting/
+    } qw/Ok Diag Note Plan Bail Exception Waiting Pass Fail Skip/
 );
 
 # Stack is ok to cache.
@@ -301,15 +301,61 @@ sub build_event {
     );
 }
 
+sub pass {
+    my $self = shift;
+    my ($name) = @_;
+
+    my $e = bless {
+        debug => bless( {%{$self->{+DEBUG}}}, 'Test::Stream::DebugInfo'),
+        name  => $name,
+    }, 'Test::Stream::Event::Pass';
+    $e->init;
+
+    return $self->{+HUB}->send($e);
+}
+
+sub fail {
+    my $self = shift;
+    my ($name, $diag) = @_;
+
+    my $e = bless {
+        debug => bless( {%{$self->{+DEBUG}}}, 'Test::Stream::DebugInfo'),
+        name  => $name,
+    }, 'Test::Stream::Event::Fail';
+    $e->init;
+
+    $diag ||= [];
+    unshift @$diag => $e->default_diag;
+
+    $e->set_diag($diag);
+
+    $self->{+HUB}->send($e);
+}
+
+sub skip {
+    my $self = shift;
+    my ($name) = @_;
+
+    my $e = bless {
+        debug => bless( {%{$self->{+DEBUG}}}, 'Test::Stream::DebugInfo'),
+        name  => $name,
+    }, 'Test::Stream::Event::Skip';
+    $e->init;
+
+    return $self->{+HUB}->send($e);
+}
+
 sub ok {
     my $self = shift;
     my ($pass, $name, $diag) = @_;
 
+    my $class = $pass ? 'Test::Stream::Event::Pass' : 'Test::Stream::Event::Fail';
+   
     my $e = bless {
         debug => bless( {%{$self->{+DEBUG}}}, 'Test::Stream::DebugInfo'),
         pass  => $pass,
         name  => $name,
-    }, 'Test::Stream::Event::Ok';
+    }, $class;
     $e->init;
 
     return $self->{+HUB}->send($e) if $pass;
@@ -751,9 +797,30 @@ will be effected.
 
 =item $event = $ctx->ok($bool, $name, \@diag)
 
-This will create an L<Test::Stream::Event::Ok> object for you. The diagnostics
-array will be used on the object in the event of a failure, if the test passes
-the diagnostics will be ignored.
+This will create either an L<Test::Stream::Event::Pass> or
+L<Test::Stream::Event::Fail> object for you.
+
+If C<$bool> is false this will add default diagnostics to the event for you. If
+you specify custom diagnostics they will be added to the event after the
+defaults.
+
+If C<$bool> is true then any custom diagnostics will be ignored.
+
+=item $event = $ctx->pass($name);
+
+This will create an L<Test::Stream::Event::Pass> event.
+
+=item $event = $ctx->skip($name);
+
+This will create an L<Test::Stream::Event::Skip> event.
+
+=item $event = $ctx->fail($name);
+
+=item $event = $ctx->fail($name, \@diag);
+
+This will create an L<Test::Stream::Event::Fail> event. This will also add some
+default diagnostics to the event for you. If you specify custom diagnostics
+they will be added to the event after the defaults.
 
 =item $event = $ctx->note($message)
 
@@ -784,11 +851,11 @@ be the event package name with C<Test::Stream::Event::> left off, or a fully
 qualified package name prefixed with a '+'. The event is returned after it is
 sent.
 
-    my $event = $ctx->send_event('Ok', ...);
+    my $event = $ctx->send_event('Pass', ...);
 
 or
 
-    my $event = $ctx->send_event('+Test::Stream::Event::Ok', ...);
+    my $event = $ctx->send_event('+Test::Stream::Event::Pass', ...);
 
 =item $event = $ctx->build_event($Type, %parameters)
 

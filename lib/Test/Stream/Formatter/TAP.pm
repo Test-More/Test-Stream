@@ -20,6 +20,9 @@ no Test::Stream::Exporter;
 
 my %CONVERTERS = (
     'Test::Stream::Event::Ok'        => \&_ok_event,
+    'Test::Stream::Event::Pass'      => \&_pass_event,
+    'Test::Stream::Event::Fail'      => \&_fail_event,
+    'Test::Stream::Event::Skip'      => \&_skip_event,
     'Test::Stream::Event::Note'      => \&_note_event,
     'Test::Stream::Event::Diag'      => \&_diag_event,
     'Test::Stream::Event::Bail'      => \&_bail_event,
@@ -120,9 +123,9 @@ sub event_tap {
     my $self = shift;
     my ($e, $num) = @_;
 
-    # Optimization for the most common case of an 'ok' event
-    my $is_ok = index("$e", 'Test::Stream::Event::Ok=' ) == 0;
-    my $converter = $is_ok ? \&_ok_event : $CONVERTERS{blessed($e)};
+    # Optimization for the most common case of a 'Pass' event
+    my $is_pass = index("$e", 'Test::Stream::Event::Pass=' ) == 0;
+    my $converter = $is_pass ? \&_pass_event : $CONVERTERS{blessed($e)};
 
     $num = undef if $self->{+NO_NUMBERS};
 
@@ -135,6 +138,87 @@ sub event_tap {
     }
 
     return $self->$converter($e, $num);
+}
+
+sub _pass_event {
+    my $self = shift;
+    my ($e, $num) = @_;
+
+    # We use direct hash access for performance. Pass events are so common we
+    # need this to be fast.
+    my $name  = $e->{name};
+    my $debug = $e->{debug};
+    my $todo  = $debug->{todo};
+
+    my $out = "ok";
+    $out .= " $num" if defined $num;
+    $out .= " - $name" if $name;
+
+    if (defined $todo) {
+        $out .= " # TODO";
+        $out .= " $todo" if length $todo;
+    }
+
+    return( [OUT_STD, "$out\n"] );
+}
+
+sub _fail_event {
+    my $self = shift;
+    my ($e, $num) = @_;
+
+    my $name  = $e->name;
+    my $debug = $e->debug;
+    my $todo  = $debug->todo;
+
+    my $out = "not ok";
+    $out .= " $num" if defined $num;
+    $out .= " - $name" if $name;
+
+    if (defined $todo) {
+        $out .= " # TODO";
+        $out .= " $todo" if length $todo;
+    }
+
+    my @out = [OUT_STD, "$out\n"];
+
+    if ($e->{diag} && @{$e->{diag}}) {
+        my $diag_handle = $debug->no_diag ? OUT_TODO : OUT_ERR;
+
+        for my $diag (@{$e->{diag}}) {
+            chomp(my $msg = $diag);
+
+            $msg = "# $msg" unless $msg =~ m/^\n/;
+            $msg =~ s/\n/\n# /g;
+            push @out => [$diag_handle, "$msg\n"];
+        }
+    }
+
+    return @out;
+}
+
+sub _skip_event {
+    my $self = shift;
+    my ($e, $num) = @_;
+
+    my $name  = $e->name;
+    my $debug = $e->debug;
+    my $skip  = $e->reason;
+    my $todo  = $debug->todo;
+
+    my $out = "ok";
+    $out .= " $num" if defined $num;
+    $out .= " - $name" if $name;
+
+    if (defined $todo) {
+        $out .= " # TODO & SKIP";
+        $out .= " $todo" if length $todo;
+    }
+    else {
+        $out .= " # skip";
+        $out .= " $skip" if length $skip;
+    }
+
+    return( [OUT_STD, "$out\n"] );
 }
 
 sub _ok_event {
