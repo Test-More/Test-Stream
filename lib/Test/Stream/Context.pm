@@ -15,7 +15,7 @@ my %LOADED = (
         require "Test/Stream/Event/$_.pm";
         my $pkg = "Test::Stream::Event::$_";
         ( $pkg => $pkg, $_ => $pkg )
-    } qw/Ok Diag Note Plan Bail Exception Waiting/
+    } qw/Ok Diag Note Plan Bail Exception Waiting Skip/
 );
 
 # Stack is ok to cache.
@@ -320,6 +320,12 @@ sub ok {
     $e->set_diag($diag);
 
     $self->{+HUB}->send($e);
+}
+
+sub skip {
+    my $self = shift;
+    my ($name, $reason) = @_;
+    $self->send_event('Skip', name => $name, reason => $reason);
 }
 
 sub note {
