@@ -1,3 +1,8 @@
+use Test::Sync::Tester;
+BEGIN {
+    skip_all "Still need to port this"
+}
+
 use Test::Sync -V1;
 
 use Test::Sync::Table qw/table/;

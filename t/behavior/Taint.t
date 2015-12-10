@@ -1,7 +1,5 @@
 #!/usr/bin/env perl -T
-use Test::Sync Core;
-
-plan(2);
+use Test::Sync::Tester;
 
 ok(1);
 ok(1);

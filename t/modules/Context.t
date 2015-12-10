@@ -1,10 +1,11 @@
-use Test::Sync -V1, -Tester;
+use strict;
+use warnings;
 
-use Test::Sync::Context qw/context release/;
+use Test::Sync::Tester;
 
-can_ok(__PACKAGE__, qw/context release/);
+use Test::Sync::Context qw/context/;
 
-my $error = dies { context(); 1 };
+my $error = exception { context(); 1 };
 my $exception = "context() called, but return value is ignored at " . __FILE__ . ' line ' . (__LINE__ - 1);
 like($error, qr/^\Q$exception\E/, "Got the exception" );
 
@@ -25,9 +26,8 @@ sub wrap(&) {
 wrap {
     my $ctx = shift;
     ok($ctx->hub, "got hub");
-    isa_ok($ctx->hub, 'Test::Sync::Hub');
     delete $ctx->debug->frame->[4];
-    is($ctx->debug->frame, $frame, "Found place to report errors");
+    is_deeply($ctx->debug->frame, $frame, "Found place to report errors");
 };
 
 wrap {
@@ -36,14 +36,14 @@ wrap {
     my $new = context();
     ok($ctx == $new, "Additional call to context gets same instance");
     delete $ctx->debug->frame->[4];
-    is($ctx->debug->frame, $frame, "Found place to report errors");
+    is_deeply($ctx->debug->frame, $frame, "Found place to report errors");
     $new->release;
 };
 
 wrap {
     my $ctx = shift;
     my $snap = $ctx->snapshot;
-    is($ctx, $snap, "snapshot is identical");
+    is_deeply($ctx, $snap, "snapshot is identical");
     ok($ctx != $snap, "snapshot is a new instance");
 };
 
@@ -55,54 +55,7 @@ my $end_ctx;
     $ctx->release;
 }
 delete $end_ctx->debug->frame->[4];
-is( $end_ctx->debug->frame, $frame, 'context is ok in an end block');
-
-sub release_test_single {
-    my $ctx = context();
-    release $ctx, 42;
-}
-
-sub release_test_list {
-    my $ctx = context();
-    release $ctx, 42, 42;
-}
-
-sub release_test_array {
-    my $ctx = context();
-    my @foo = (42, 42);
-    release $ctx, @foo;
-}
-
-sub stuff { 'stuff', 'more stuff' };
-
-sub release_test_call {
-    my $ctx = context();
-    release $ctx, stuff();
-}
-
-is(
-    release_test_single(),
-    42,
-    "Got scalar value"
-);
-
-is(
-    [release_test_list()],
-    [42, 42],
-    "Got list"
-);
-
-is(
-    [release_test_array()],
-    [42, 42],
-    "Got array values"
-);
-
-is(
-    [release_test_call()],
-    ['stuff', 'more stuff'],
-    "Got return from called sub"
-);
+is_deeply( $end_ctx->debug->frame, $frame, 'context is ok in an end block');
 
 # Test event generation
 {
@@ -127,64 +80,55 @@ my $ctx = Test::Sync::Context->new(
 );
 
 my $e = $ctx->build_event('Ok', pass => 1, name => 'foo');
-isa_ok($e, 'Test::Sync::Event::Ok');
 is($e->pass, 1, "Pass");
 is($e->name, 'foo', "got name");
-is($e->debug, $dbg, "Got the debug info");
+is_deeply($e->debug, $dbg, "Got the debug info");
 ok(!@$events, "No events yet");
 
 $e = $ctx->send_event('Ok', pass => 1, name => 'foo');
-isa_ok($e, 'Test::Sync::Event::Ok');
 is($e->pass, 1, "Pass");
 is($e->name, 'foo', "got name");
-is($e->debug, $dbg, "Got the debug info");
+is_deeply($e->debug, $dbg, "Got the debug info");
 is(@$events, 1, "1 event");
-is($events, [$e], "Hub saw the event");
+is_deeply($events, [$e], "Hub saw the event");
 pop @$events;
 
 $e = $ctx->ok(1, 'foo');
-isa_ok($e, 'Test::Sync::Event::Ok');
 is($e->pass, 1, "Pass");
 is($e->name, 'foo', "got name");
-is($e->debug, $dbg, "Got the debug info");
+is_deeply($e->debug, $dbg, "Got the debug info");
 is(@$events, 1, "1 event");
-is($events, [$e], "Hub saw the event");
+is_deeply($events, [$e], "Hub saw the event");
 pop @$events;
 
 $e = $ctx->note('foo');
-isa_ok($e, 'Test::Sync::Event::Note');
 is($e->message, 'foo', "got message");
-is($e->debug, $dbg, "Got the debug info");
+is_deeply($e->debug, $dbg, "Got the debug info");
 is(@$events, 1, "1 event");
-is($events, [$e], "Hub saw the event");
+is_deeply($events, [$e], "Hub saw the event");
 pop @$events;
 
 $e = $ctx->diag('foo');
-isa_ok($e, 'Test::Sync::Event::Diag');
 is($e->message, 'foo', "got message");
-is($e->debug, $dbg, "Got the debug info");
+is_deeply($e->debug, $dbg, "Got the debug info");
 is(@$events, 1, "1 event");
-is($events, [$e], "Hub saw the event");
+is_deeply($events, [$e], "Hub saw the event");
 pop @$events;
 
 $e = $ctx->plan(100);
-isa_ok($e, 'Test::Sync::Event::Plan');
 is($e->max, 100, "got max");
-is($e->debug, $dbg, "Got the debug info");
+is_deeply($e->debug, $dbg, "Got the debug info");
 is(@$events, 1, "1 event");
-is($events, [$e], "Hub saw the event");
+is_deeply($events, [$e], "Hub saw the event");
 pop @$events;
 
-# Test todo (deprecated)
-my ($dbg1, $dbg2);
-my $todo = Test::Sync->stack->top->set_todo("Here be dragons");
-wrap { $dbg1 = shift->debug };
-$todo = undef;
-wrap { $dbg2 = shift->debug };
-
-is($dbg1->_todo, 'Here be dragons', "Got todo in context created with todo in place");
-is($dbg2->_todo, undef, "no todo in context created after todo was removed");
-
+$e = $ctx->skip('foo', 'because');
+is($e->name, 'foo', "got name");
+is($e->reason, 'because', "got reason");
+is_deeply($e->debug, $dbg, "Got the debug info");
+is(@$events, 1, "1 event");
+is_deeply($events, [$e], "Hub saw the event");
+pop @$events;
 
 # Test hooks
 
@@ -220,7 +164,7 @@ $hub->remove_context_release($ref2);
 @Test::Sync::Context::ON_INIT = ();
 @Test::Sync::Context::ON_RELEASE = ();
 
-is(
+is_deeply(
     \@hooks,
     [qw{
         start
@@ -261,7 +205,7 @@ is(
 
     my $ran = 0;
     my $doit = sub {
-        is(\@_, [qw/foo bar/], "got args");
+        is_deeply(\@_, [qw/foo bar/], "got args");
         is(context(), $one, "The one context is our context");
         $ran++;
         die "Make sure old context is restored";
@@ -271,7 +215,7 @@ is(
     is(context(level => -1, wrapped => -2), $ctx, "Old context restored");
     $ctx->release;
 
-    ok(lives { $one->do_in_context(sub {1}) }, "do_in_context works without an original")
+    ok(!exception { $one->do_in_context(sub {1}) }, "do_in_context works without an original")
 }
 
 {
@@ -281,7 +225,7 @@ is(
         my $ctx = context();
 
         local $? = 0;
-        $warnings = warns { Test::Sync::Context::_do_end() };
+        $warnings = warnings { Test::Sync::Context::_do_end() };
         $exit = $?;
 
         $ctx->release;
@@ -290,7 +234,7 @@ is(
     {
         my $line = __LINE__ - 3;
         my $file = __FILE__;
-        is(
+        is_deeply(
             $warnings,
             [
                 "context object was never released! This means a testing tool is behaving very badly at $file line $line.\n"
@@ -303,10 +247,10 @@ is(
 }
 
 {
-    like(dies { Test::Sync::Context->new() }, qr/The 'debug' attribute is required/, "need to have debug");
+    like(exception { Test::Sync::Context->new() }, qr/The 'debug' attribute is required/, "need to have debug");
 
     my $debug = Test::Sync::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__, 'foo']);
-    like(dies { Test::Sync::Context->new(debug => $debug) }, qr/The 'hub' attribute is required/, "need to have hub");
+    like(exception { Test::Sync::Context->new(debug => $debug) }, qr/The 'hub' attribute is required/, "need to have hub");
 
     my $hub = Test::Sync->stack->top;
     my $ctx = Test::Sync::Context->new(debug => $debug, hub => $hub);
@@ -316,7 +260,7 @@ is(
     is($ctx->{_depth}, 1, "Do not reset depth");
 
     like(
-        dies { $ctx->release },
+        exception { $ctx->release },
         qr/release\(\) should not be called on a non-canonical context/,
         "Non canonical context, do not release"
     );
@@ -327,36 +271,31 @@ sub {
     my $caller = [caller(0)];
     my $ctx = context();
 
-    my $warnings = warns { $ctx = undef };
+    my $warnings = warnings { $ctx = undef };
     my @parts = split /^\n/m, $warnings->[0];
-    is(
-        \@parts,
-        [
-            <<"            EOT",
+    is($parts[0], <<"    EOT", 'Got warning about unreleased context');
 Context was not released! Releasing at destruction\.
 Context creation details:
   Package: main
      File: $caller->[1]
      Line: $caller->[2]
      Tool: $caller->[3]
-            EOT
-            match qr/Trace: .*/,
-        ],
-        "Got warning about unreleased context"
-    );
+    EOT
+
+    like($parts[1], qr/Trace:/, "got trace");
 
     ok(@$warnings == 1, "Only 1 warning");
 }->();
 
 sub {
     like(
-        dies { my $ctx = context(level => 20) },
+        exception { my $ctx = context(level => 20) },
         qr/Could not find context at depth 21/,
         "Level sanity"
     );
 
     ok(
-        lives {
+        !exception {
             my $ctx = context(level => 20, fudge => 1);
             $ctx->release;
         },
@@ -364,39 +303,36 @@ sub {
     );
 }->();
 
-{
-    my $warnings;
-    sub {
-        my ($ctx1, $ctx2);
-        sub { $ctx1 = context() }->();
+sub {
+    my ($ctx1, $ctx2);
+    sub { $ctx1 = context() }->();
 
-        my @warnings;
-        {
-            local $SIG{__WARN__} = sub { push @warnings => @_ };
-            $ctx2 = context();
-            $ctx1 = undef;
-        }
+    my @warnings;
+    {
+        local $SIG{__WARN__} = sub { push @warnings => @_ };
+        $ctx2 = context();
+        $ctx1 = undef;
+    }
 
-        $ctx2->release;
+    $ctx2->release;
 
-        is(
-            \@warnings,
-            [
-                match qr/^context\(\) was called to retrieve an existing context, however the existing/,
-            ],
-            "Got expected warning"
-        );
-    }->();
-}
+    is(@warnings, 1, "1 warning");
+    like(
+        $warnings[0],
+        qr/^context\(\) was called to retrieve an existing context, however the existing/,
+        "Got expected warning"
+    );
+}->();
 
 sub {
     my $ctx = context();
-    my $e = dies { $ctx->throw('xxx') };
+    my $e = exception { $ctx->throw('xxx') };
     ok(!$ctx, "context was destroyed");
     like($e, qr/xxx/, "got exception");
 
     $ctx = context();
-    like(warning { $ctx->alert('xxx') }, qr/xxx/, "got warning");
+    my $warnings = warnings { $ctx->alert('xxx') };
+    like($warnings->[0], qr/xxx/, "got warning");
     $ctx->release;
 }->();
 
@@ -410,7 +346,7 @@ sub {
     is($ctx->_parse_event('+Test::Sync::Event::Ok'), 'Test::Sync::Event::Ok', "Got the +Ok event class");
 
     like(
-        dies { $ctx->_parse_event('+DFASGFSDFGSDGSD') },
+        exception { $ctx->_parse_event('+DFASGFSDFGSDGSD') },
         qr/Could not load event module 'DFASGFSDFGSDGSD': Can't locate DFASGFSDFGSDGSD\.pm/,
         "Bad event type"
     );
@@ -425,22 +361,11 @@ sub {
         $ctx->release;
     };
 
-    like(
-        $e1->diag,
-        [
-            qr/Failed test 'foo'/,
-            'xxx',
-        ],
-        "Chekc diag"
-    );
+    like($e1->diag->[0], qr/Failed test 'foo'/, "event 1 diag 1");
+    is($e1->diag->[1], 'xxx', "event 1 diag 2");
 
-    like(
-        $e2->diag,
-        [
-            qr/Failed test 'foo'/,
-        ],
-        "Chekc diag"
-    );
+    like($e2->diag->[0], qr/Failed test 'foo'/, "event 1 diag 1");
+    is(@{$e2->diag}, 1, "only 1 diag for event 2");
 }
 
 done_testing;

@@ -1,3 +1,6 @@
+use strict;
+use warnings;
+
 use Test::Sync;
 
 my ($LOADED, $INIT, $POST_LOAD);
@@ -8,12 +11,14 @@ BEGIN {
     $POST_LOAD = Test::Sync->loaded;
 };
 
+use Test::Sync::IPC;
+use Test::Sync::Tester;
+use Test::Sync::Util qw/get_tid/;
+my $CLASS = 'Test::Sync';
+
 ok(!$LOADED, "Was not loaded right away");
 ok(!$INIT, "Init was not done right away");
 ok($POST_LOAD, "We loaded it");
-
-use Test::Sync -V1, class => 'Test::Sync';
-use Test::Sync::Util qw/get_tid/;
 
 # Note: This is a check that stuff happens in an END block.
 {
@@ -37,9 +42,9 @@ use Test::Sync::Util qw/get_tid/;
     );
 
     our $kill2 = bless {fixed => 0, name => "set exit"}, 'FOLLOW';
-    my $old = Test::SyncObj->can('set_exit');
+    my $old = Test::Sync::Tracker->can('set_exit');
     no warnings 'redefine';
-    *Test::SyncObj::set_exit = sub {
+    *Test::Sync::Tracker::set_exit = sub {
         $kill2->{fixed} = 1;
         print "# Running set_exit\n";
         $old->(@_);
@@ -52,11 +57,11 @@ ok($CLASS->loaded, "Test::Sync is finished loading");
 is($CLASS->pid, $$, "got pid");
 is($CLASS->tid, get_tid(), "got tid");
 
-isa_ok($CLASS->stack, 'Test::Sync::Stack');
-ref_is($CLASS->stack, $CLASS->stack, "always get the same stack");
+ok($CLASS->stack, 'got stack');
+is($CLASS->stack, $CLASS->stack, "always get the same stack");
 
-isa_ok($CLASS->ipc, 'Test::Sync::IPC');
-ref_is($CLASS->ipc, $CLASS->ipc, "always get the same IPC");
+ok($CLASS->ipc, 'got ipc');
+is($CLASS->ipc, $CLASS->ipc, "always get the same IPC");
 
 ok($CLASS->formatter, "Got a formatter");
 is($CLASS->formatter, $CLASS->formatter, "always get the same Formatter (class name)");
@@ -69,13 +74,13 @@ is($ran, 1, "ran the post-load");
 ok($CLASS->post_loads >= 1, "we have at least 1 post-load");
 
 like(
-    dies { $CLASS->set_formatter() },
+    exception { $CLASS->set_formatter() },
     qr/No formatter specified/,
     "set_formatter requires an argument"
 );
 
 like(
-    dies { $CLASS->set_formatter('fake') },
+    exception { $CLASS->set_formatter('fake') },
     qr/Global Formatter already set/,
     "set_formatter doesn't work after initialization",
 );

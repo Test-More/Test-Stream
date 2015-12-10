@@ -1,4 +1,4 @@
-use Test::Sync -V1;
+use Test::Sync::Tester;
 use strict;
 use warnings;
 
@@ -11,7 +11,6 @@ my $skip = Test::Sync::Event::Skip->new(
     reason => 'foo',
 );
 
-isa_ok($skip, 'Test::Sync::Event::Skip');
 is($skip->name, 'skip me', "set name");
 is($skip->reason, 'foo', "got skip reason");
 

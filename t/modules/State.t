@@ -1,10 +1,10 @@
-use Test::Sync -V1;
+use strict;
+use warnings;
 
+use Test::Sync::Tester;
 use Test::Sync::State;
 
 my $state = 'Test::Sync::State'->new;
-
-can_ok($state, qw/count failed ended is_passing plan/);
 
 is($state->count, 0, "count starts at 0");
 is($state->failed, 0, "failed starts at 0");

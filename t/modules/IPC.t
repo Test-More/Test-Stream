@@ -6,9 +6,17 @@ use Test::Sync::IPC;
 my @drivers;
 BEGIN { @drivers = Test::Sync::IPC->drivers };
 
-use Test::Sync qw/-V1 -SpecTester/;
+use Test::Sync::Tester;
+use Test::Sync::Context qw/context/;
+use Test::Sync::Subtest qw/subtest/;
+sub tests {
+    my ($name, $code) = @_;
+    my $ctx = context();
+    subtest($name, $code, 1);
+    $ctx->release;
+}
 
-is(
+is_deeply(
     \@drivers,
     ['Test::Sync::IPC::Files'],
     "Got default driver"
@@ -25,31 +33,30 @@ Test::Sync::IPC->register_drivers(
     'Test::Sync::IPC::Files',
 );
 
-is(
+is_deeply(
     [Test::Sync::IPC->drivers],
     ['Test::Sync::IPC::Files'],
     "Driver not added multiple times"
 );
 
 tests init_drivers => sub {
-    ok( lives { Test::Sync::IPC->new }, "Found working driver" );
+    ok( !exception { Test::Sync::IPC->new }, "Found working driver" );
 
-    my $mock = mock 'Test::Sync::IPC::Files' => (
-        override => [ is_viable => sub { 0 }],
-    );
+    no warnings 'redefine';
+    local *Test::Sync::IPC::Files::is_viable = sub { 0 };
+    use warnings;
 
     like(
-        dies { Test::Sync::IPC->new },
+        exception { Test::Sync::IPC->new },
         qr/Could not find a viable IPC driver! Aborting/,
         "No viable drivers"
     );
 
-    $mock->restore('is_viable');
-    $mock->override( new => sub { undef } );
-    ok(Test::Sync::IPC::Files->is_viable, "Sanity");
-
+    no warnings 'redefine';
+    local *Test::Sync::IPC::Files::is_viable = sub { undef };
+    use warnings;
     like(
-        dies { Test::Sync::IPC->new },
+        exception { Test::Sync::IPC->new },
         qr/Could not find a viable IPC driver! Aborting/,
         "No viable drivers"
     );
@@ -72,7 +79,7 @@ tests polling => sub {
 for my $meth (qw/send cull add_hub drop_hub waiting is_viable/) {
     my $one = Test::Sync::IPC->new;
     like(
-        dies { $one->$meth },
+        exception { $one->$meth },
         qr/'\Q$one\E' did not define the required method '$meth'/,
         "Require override of method $meth"
     );

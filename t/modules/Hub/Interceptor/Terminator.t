@@ -1,4 +1,6 @@
-use Test::Sync -V1;
+use strict;
+use warnings;
+use Test::Sync::Tester;
 
 use Test::Sync::Hub::Interceptor::Terminator;
 

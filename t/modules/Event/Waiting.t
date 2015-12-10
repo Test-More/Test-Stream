@@ -1,7 +1,7 @@
-use Test::Sync -V1;
 use strict;
 use warnings;
 
+use Test::Sync::Tester;
 use Test::Sync::Event::Waiting;
 
 my $waiting = Test::Sync::Event::Waiting->new(
