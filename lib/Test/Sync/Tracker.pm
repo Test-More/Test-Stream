@@ -1,4 +1,4 @@
-package Test::SyncObj;
+package Test::Sync::Tracker;
 use strict;
 use warnings;
 
@@ -218,7 +218,7 @@ __END__
 
 =head1 NAME
 
-Test::SyncObj - Object used by Sync under the hood
+Test::Sync::Tracker - Object used by Sync under the hood
 
 =head1 DESCRIPTION
 
@@ -233,9 +233,9 @@ shape or form.
 
 =head1 SYNOPSIS
 
-    use Test::SyncObj;
+    use Test::Sync::Tracker;
 
-    my $obj = Test::SyncObj->new;
+    my $obj = Test::Sync::Tracker->new;
 
 =head1 METHODS
 
