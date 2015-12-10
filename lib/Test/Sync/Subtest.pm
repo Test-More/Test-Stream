@@ -30,8 +30,7 @@ sub subtest {
     $hub->listen(sub { push @events => $_[1] });
     $hub->format(undef) if $buffered;
 
-    my $no_diag = $parent->get_todo || $parent->parent_todo || $ctx->debug->_no_diag;
-    $hub->set_parent_todo($no_diag) if $no_diag;
+    $hub->set_parent_todo(1) if defined $parent->get_todo;
 
     my ($ok, $err, $finished);
     TS_SUBTEST_WRAPPER: {
@@ -71,7 +70,6 @@ sub subtest {
         name => $name,
         buffered  => $buffered,
         subevents => \@events,
-        $parent->_fast_todo,
     );
 
     $e->set_diag([
