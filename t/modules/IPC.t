@@ -1,76 +1,76 @@
 use strict;
 use warnings;
 
-use Test::Stream::IPC;
+use Test::Sync::IPC;
 
 my @drivers;
-BEGIN { @drivers = Test::Stream::IPC->drivers };
+BEGIN { @drivers = Test::Sync::IPC->drivers };
 
-use Test::Stream qw/-V1 -SpecTester/;
+use Test::Sync qw/-V1 -SpecTester/;
 
 is(
     \@drivers,
-    ['Test::Stream::IPC::Files'],
+    ['Test::Sync::IPC::Files'],
     "Got default driver"
 );
 
-require Test::Stream::IPC::Files;
-Test::Stream::IPC::Files->import();
-Test::Stream::IPC::Files->import();
-Test::Stream::IPC::Files->import();
+require Test::Sync::IPC::Files;
+Test::Sync::IPC::Files->import();
+Test::Sync::IPC::Files->import();
+Test::Sync::IPC::Files->import();
 
-Test::Stream::IPC->register_drivers(
-    'Test::Stream::IPC::Files',
-    'Test::Stream::IPC::Files',
-    'Test::Stream::IPC::Files',
+Test::Sync::IPC->register_drivers(
+    'Test::Sync::IPC::Files',
+    'Test::Sync::IPC::Files',
+    'Test::Sync::IPC::Files',
 );
 
 is(
-    [Test::Stream::IPC->drivers],
-    ['Test::Stream::IPC::Files'],
+    [Test::Sync::IPC->drivers],
+    ['Test::Sync::IPC::Files'],
     "Driver not added multiple times"
 );
 
 tests init_drivers => sub {
-    ok( lives { Test::Stream::IPC->new }, "Found working driver" );
+    ok( lives { Test::Sync::IPC->new }, "Found working driver" );
 
-    my $mock = mock 'Test::Stream::IPC::Files' => (
+    my $mock = mock 'Test::Sync::IPC::Files' => (
         override => [ is_viable => sub { 0 }],
     );
 
     like(
-        dies { Test::Stream::IPC->new },
+        dies { Test::Sync::IPC->new },
         qr/Could not find a viable IPC driver! Aborting/,
         "No viable drivers"
     );
 
     $mock->restore('is_viable');
     $mock->override( new => sub { undef } );
-    ok(Test::Stream::IPC::Files->is_viable, "Sanity");
+    ok(Test::Sync::IPC::Files->is_viable, "Sanity");
 
     like(
-        dies { Test::Stream::IPC->new },
+        dies { Test::Sync::IPC->new },
         qr/Could not find a viable IPC driver! Aborting/,
         "No viable drivers"
     );
 };
 
 tests polling => sub {
-    ok(!Test::Stream::IPC->polling_enabled, "no polling yet");
-    ok(!@Test::Stream::Context::ON_INIT, "no context init hooks yet");
+    ok(!Test::Sync::IPC->polling_enabled, "no polling yet");
+    ok(!@Test::Sync::Context::ON_INIT, "no context init hooks yet");
 
-    Test::Stream::IPC->enable_polling;
+    Test::Sync::IPC->enable_polling;
 
-    ok(1 == @Test::Stream::Context::ON_INIT, "added 1 hook");
-    ok(Test::Stream::IPC->polling_enabled, "polling enabled");
+    ok(1 == @Test::Sync::Context::ON_INIT, "added 1 hook");
+    ok(Test::Sync::IPC->polling_enabled, "polling enabled");
 
-    Test::Stream::IPC->enable_polling;
+    Test::Sync::IPC->enable_polling;
 
-    ok(1 == @Test::Stream::Context::ON_INIT, "Did not add hook twice");
+    ok(1 == @Test::Sync::Context::ON_INIT, "Did not add hook twice");
 };
 
 for my $meth (qw/send cull add_hub drop_hub waiting is_viable/) {
-    my $one = Test::Stream::IPC->new;
+    my $one = Test::Sync::IPC->new;
     like(
         dies { $one->$meth },
         qr/'\Q$one\E' did not define the required method '$meth'/,
@@ -79,7 +79,7 @@ for my $meth (qw/send cull add_hub drop_hub waiting is_viable/) {
 }
 
 tests abort => sub {
-    my $one = Test::Stream::IPC->new(no_fatal => 1);
+    my $one = Test::Sync::IPC->new(no_fatal => 1);
     my ($err, $out) = ("", "");
 
     {

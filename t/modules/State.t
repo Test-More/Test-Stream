@@ -1,8 +1,8 @@
-use Test::Stream -V1;
+use Test::Sync -V1;
 
-use Test::Stream::State;
+use Test::Sync::State;
 
-my $state = 'Test::Stream::State'->new;
+my $state = 'Test::Sync::State'->new;
 
 can_ok($state, qw/count failed ended is_passing plan/);
 

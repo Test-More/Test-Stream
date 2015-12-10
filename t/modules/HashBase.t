@@ -1,14 +1,14 @@
-use Test::Stream -V1;
+use Test::Sync -V1;
 
 BEGIN {
     $INC{'My/HBase.pm'} = __FILE__;
 
     package My::HBase;
-    use Test::Stream::HashBase(
+    use Test::Sync::HashBase(
         accessors => [qw/foo bar baz/],
     );
 
-    use Test::Stream -V1;
+    use Test::Sync -V1;
     is(FOO, 'foo', "FOO CONSTANT");
     is(BAR, 'bar', "BAR CONSTANT");
     is(BAZ, 'baz', "BAZ CONSTANT");
@@ -17,9 +17,9 @@ BEGIN {
 BEGIN {
     package My::HBaseSub;
     use base 'My::HBase';
-    use Test::Stream::HashBase accessors => [qw/apple pear/];
+    use Test::Sync::HashBase accessors => [qw/apple pear/];
 
-    use Test::Stream -V1;
+    use Test::Sync -V1;
     is(FOO,   'foo',   "FOO CONSTANT");
     is(BAR,   'bar',   "BAR CONSTANT");
     is(BAZ,   'baz',   "BAZ CONSTANT");
@@ -27,7 +27,7 @@ BEGIN {
     is(PEAR,  'pear',  "PEAR CONSTANT");
 
     local $SIG{__WARN__} = sub { 1 };
-    my $bad = eval { Test::Stream::HashBase->import( base => 'foobarbaz' ); 1 };
+    my $bad = eval { Test::Sync::HashBase->import( base => 'foobarbaz' ); 1 };
     my $error = $@;
     ok(!$bad, "Threw exception");
     like($error, qr/Base class 'foobarbaz' is not a HashBase class/, "Expected error");
@@ -38,14 +38,14 @@ BEGIN {
     BEGIN {
         my $warning;
         local $SIG{__WARN__} = sub { $warning = shift };
-        Test::Stream::HashBase->import(
+        Test::Sync::HashBase->import(
             accessors => [qw/apple pear/],
             base      => 'My::HBase',
         );
         main::like($warning, qr/'base' argument to HashBase is deprecated\./, "got import deprecation warning");
     }
 
-    use Test::Stream -V1;
+    use Test::Sync -V1;
     is(FOO,   'foo',   "FOO CONSTANT");
     is(BAR,   'bar',   "BAR CONSTANT");
     is(BAZ,   'baz',   "BAZ CONSTANT");
@@ -53,7 +53,7 @@ BEGIN {
     is(PEAR,  'pear',  "PEAR CONSTANT");
 
     local $SIG{__WARN__} = sub { 1 };
-    my $bad = eval { Test::Stream::HashBase->import( base => 'foobarbaz' ); 1 };
+    my $bad = eval { Test::Sync::HashBase->import( base => 'foobarbaz' ); 1 };
     my $error = $@;
     ok(!$bad, "Threw exception");
     like($error, qr/Base class 'foobarbaz' is not a HashBase class/, "Expected error");
@@ -61,10 +61,10 @@ BEGIN {
 
 {
     package Consumer;
-    use Test::Stream -V1;
+    use Test::Sync -V1;
 
     local $SIG{__WARN__} = sub { 1 };
-    my $bad = eval { Test::Stream::HashBase->import( base => 'Fake::Thing' ); 1 };
+    my $bad = eval { Test::Sync::HashBase->import( base => 'Fake::Thing' ); 1 };
     my $error = $@;
     ok(!$bad, "Threw exception");
     like($error, qr/Base class 'Fake::Thing' is not a HashBase class/, "Expected error");
@@ -103,9 +103,9 @@ is(
 
 my $obj = bless {}, 'FAKE';
 
-my $accessor = Test::Stream::HashBase->gen_accessor('foo');
-my $getter   = Test::Stream::HashBase->gen_getter('foo');
-my $setter   = Test::Stream::HashBase->gen_setter('foo');
+my $accessor = Test::Sync::HashBase->gen_accessor('foo');
+my $getter   = Test::Sync::HashBase->gen_getter('foo');
+my $setter   = Test::Sync::HashBase->gen_setter('foo');
 
 is($obj, {}, "nothing set");
 

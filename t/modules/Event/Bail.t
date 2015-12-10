@@ -1,10 +1,10 @@
-use Test::Stream -V1;
+use Test::Sync -V1;
 
-use Test::Stream::Event::Bail;
+use Test::Sync::Event::Bail;
 
-use Test::Stream::Formatter::TAP qw/OUT_STD/;
+use Test::Sync::Formatter::TAP qw/OUT_STD/;
 
-my $bail = Test::Stream::Event::Bail->new(
+my $bail = Test::Sync::Event::Bail->new(
     debug => 'fake',
     reason => 'evil',
 );
@@ -22,8 +22,8 @@ warns {
 is($bail->terminate, 255, "Bail will cause the test to exit.");
 is($bail->global, 1, "Bail is global, everything should bail");
 
-require Test::Stream::State;
-my $state = Test::Stream::State->new;
+require Test::Sync::State;
+my $state = Test::Sync::State->new;
 ok($state->is_passing, "passing");
 ok(!$state->failed, "no failures");
 

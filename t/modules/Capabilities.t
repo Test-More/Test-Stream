@@ -1,6 +1,6 @@
-use Test::Stream -V1;
+use Test::Sync -V1;
 
-use Test::Stream::Capabilities qw/CAN_FORK CAN_THREAD/;
+use Test::Sync::Capabilities qw/CAN_FORK CAN_THREAD/;
 
 can_ok(__PACKAGE__, qw/CAN_FORK CAN_THREAD/);
 

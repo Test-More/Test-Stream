@@ -1,10 +1,10 @@
-use Test::Stream -V1;
+use Test::Sync -V1;
 
-use Test::Stream::Event::Exception;
+use Test::Sync::Event::Exception;
 
-use Test::Stream::Formatter::TAP qw/OUT_ERR/;
+use Test::Sync::Formatter::TAP qw/OUT_ERR/;
 
-my $exception = Test::Stream::Event::Exception->new(
+my $exception = Test::Sync::Event::Exception->new(
     debug => 'fake',
     error => "evil at lake_of_fire.t line 6\n",
 );
@@ -19,8 +19,8 @@ warns {
     );
 };
 
-require Test::Stream::State;
-my $state = Test::Stream::State->new;
+require Test::Sync::State;
+my $state = Test::Sync::State->new;
 ok($state->is_passing, "passing");
 ok(!$state->failed, "no failures");
 

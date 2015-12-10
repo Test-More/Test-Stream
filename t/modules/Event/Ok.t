@@ -1,27 +1,27 @@
-use Test::Stream -V1, -SpecTester;
+use Test::Sync -V1, -SpecTester;
 
-use Test::Stream::State;
-use Test::Stream::DebugInfo;
-use Test::Stream::Event::Ok;
-use Test::Stream::Event::Diag;
-use Test::Stream::Formatter::TAP qw/OUT_STD OUT_ERR OUT_TODO/;
+use Test::Sync::State;
+use Test::Sync::DebugInfo;
+use Test::Sync::Event::Ok;
+use Test::Sync::Event::Diag;
+use Test::Sync::Formatter::TAP qw/OUT_STD OUT_ERR OUT_TODO/;
 
 # Make sure there is a fresh debug object for each group
 my $dbg;
 before_each dbg => sub {
-    $dbg = Test::Stream::DebugInfo->new(
+    $dbg = Test::Sync::DebugInfo->new(
         frame => ['main_foo', 'foo.t', 42, 'main_foo::flubnarb'],
     );
 };
 
 tests Passing => sub {
-    my $ok = Test::Stream::Event::Ok->new(
+    my $ok = Test::Sync::Event::Ok->new(
         debug => $dbg,
         pass  => 1,
         name  => 'the_test',
     );
     ok(!$ok->causes_fail, "Passing 'OK' event does not cause failure");
-    isa_ok($ok, 'Test::Stream::Event');
+    isa_ok($ok, 'Test::Sync::Event');
     is($ok->pass, 1, "got pass");
     is($ok->name, 'the_test', "got name");
     is($ok->effective_pass, 1, "effective pass");
@@ -35,7 +35,7 @@ tests Passing => sub {
         );
     };
 
-    my $state = Test::Stream::State->new;
+    my $state = Test::Sync::State->new;
     $ok->update_state($state);
     is($state->count, 1, "Added to the count");
     is($state->is_passing, 1, "still passing");
@@ -44,13 +44,13 @@ tests Passing => sub {
 tests Failing => sub {
     local $ENV{HARNESS_ACTIVE} = 1;
     local $ENV{HARNESS_IS_VERBOSE} = 1;
-    my $ok = Test::Stream::Event::Ok->new(
+    my $ok = Test::Sync::Event::Ok->new(
         debug => $dbg,
         pass  => 0,
         name  => 'the_test',
     );
     ok($ok->causes_fail, "A failing test causes failures");
-    isa_ok($ok, 'Test::Stream::Event');
+    isa_ok($ok, 'Test::Sync::Event');
     is($ok->pass, 0, "got pass");
     is($ok->name, 'the_test', "got name");
     is($ok->effective_pass, 0, "effective pass");
@@ -105,7 +105,7 @@ tests Failing => sub {
         );
     };
 
-    my $state = Test::Stream::State->new;
+    my $state = Test::Sync::State->new;
     $ok->update_state($state);
     is($state->count, 1, "Added to the count");
     is($state->failed, 1, "Added to failed count");
@@ -115,13 +115,13 @@ tests Failing => sub {
 tests fail_with_diag => sub {
     local $ENV{HARNESS_ACTIVE} = 1;
     local $ENV{HARNESS_IS_VERBOSE} = 1;
-    my $ok = Test::Stream::Event::Ok->new(
+    my $ok = Test::Sync::Event::Ok->new(
         debug => $dbg,
         pass  => 0,
         name  => 'the_test',
         diag  => ['xxx'],
     );
-    isa_ok($ok, 'Test::Stream::Event');
+    isa_ok($ok, 'Test::Sync::Event');
     is($ok->pass, 0, "got pass");
     is($ok->name, 'the_test', "got name");
     is($ok->effective_pass, 0, "effective pass");
@@ -143,7 +143,7 @@ tests fail_with_diag => sub {
         );
     };
 
-    my $state = Test::Stream::State->new;
+    my $state = Test::Sync::State->new;
     $ok->update_state($state);
     is($state->count, 1, "Added to the count");
     is($state->failed, 1, "Added to failed count");
@@ -153,13 +153,13 @@ tests fail_with_diag => sub {
 tests "Failing TODO" => sub {
     local $ENV{HARNESS_ACTIVE} = 1;
     local $ENV{HARNESS_IS_VERBOSE} = 1;
-    my $ok = Test::Stream::Event::Ok->new(
+    my $ok = Test::Sync::Event::Ok->new(
         debug => $dbg,
         pass  => 0,
         name  => 'the_test',
         todo  => 'A Todo',
     );
-    isa_ok($ok, 'Test::Stream::Event');
+    isa_ok($ok, 'Test::Sync::Event');
     is($ok->pass, 0, "got pass");
     is($ok->name, 'the_test', "got name");
     is($ok->effective_pass, 1, "effective pass is true from todo");
@@ -182,7 +182,7 @@ tests "Failing TODO" => sub {
         );
     };
 
-    my $state = Test::Stream::State->new;
+    my $state = Test::Sync::State->new;
     $ok->update_state($state);
     is($state->count, 1, "Added to the count");
     is($state->failed, 0, "failed count unchanged");
@@ -193,12 +193,12 @@ tests "Failing TODO" => sub {
 tests skip => sub {
     local $ENV{HARNESS_ACTIVE} = 1;
     warns { $dbg->set_skip('A Skip') };
-    my $ok = Test::Stream::Event::Ok->new(
+    my $ok = Test::Sync::Event::Ok->new(
         debug => $dbg,
         pass  => 1,
         name  => 'the_test',
     );
-    isa_ok($ok, 'Test::Stream::Event');
+    isa_ok($ok, 'Test::Sync::Event');
     is($ok->pass, 1, "got pass");
     is($ok->name, 'the_test', "got name");
     is($ok->effective_pass, 1, "effective pass");
@@ -214,7 +214,7 @@ tests skip => sub {
         );
     };
 
-    my $state = Test::Stream::State->new;
+    my $state = Test::Sync::State->new;
     $ok->update_state($state);
     is($state->count, 1, "Added to the count");
     is($state->failed, 0, "failed count unchanged");
@@ -223,30 +223,30 @@ tests skip => sub {
 
 tests init => sub {
     like(
-        dies { Test::Stream::Event::Ok->new() },
+        dies { Test::Sync::Event::Ok->new() },
         qr/No debug info provided!/,
         "Need to provide debug info"
     );
 
     like(
-        dies { Test::Stream::Event::Ok->new(debug => $dbg, pass => 1, name => "foo#foo") },
+        dies { Test::Sync::Event::Ok->new(debug => $dbg, pass => 1, name => "foo#foo") },
         qr/'foo#foo' is not a valid name, names must not contain '#' or newlines/,
         "Some characters do not belong in a name"
     );
 
     like(
-        dies { Test::Stream::Event::Ok->new(debug => $dbg, pass => 1, name => "foo\nfoo") },
+        dies { Test::Sync::Event::Ok->new(debug => $dbg, pass => 1, name => "foo\nfoo") },
         qr/'foo\nfoo' is not a valid name, names must not contain '#' or newlines/,
         "Some characters do not belong in a name"
     );
 
-    my $ok = Test::Stream::Event::Ok->new(
+    my $ok = Test::Sync::Event::Ok->new(
         debug => $dbg,
         pass  => 1,
     );
     is($ok->effective_pass, 1, "set effective pass");
 
-    $ok = Test::Stream::Event::Ok->new(
+    $ok = Test::Sync::Event::Ok->new(
         debug => $dbg,
         pass  => 1,
         name => 'foo#foo',
@@ -256,13 +256,13 @@ tests init => sub {
 };
 
 tests default_diag => sub {
-    my $ok = Test::Stream::Event::Ok->new(debug => $dbg, pass => 1);
+    my $ok = Test::Sync::Event::Ok->new(debug => $dbg, pass => 1);
     is([$ok->default_diag], [], "no diag for a pass");
 
-    $ok = Test::Stream::Event::Ok->new(debug => $dbg, pass => 0);
+    $ok = Test::Sync::Event::Ok->new(debug => $dbg, pass => 0);
     like([$ok->default_diag], [qr/Failed test at foo\.t line 42/], "got diag w/o name");
 
-    $ok = Test::Stream::Event::Ok->new(debug => $dbg, pass => 0, name => 'foo');
+    $ok = Test::Sync::Event::Ok->new(debug => $dbg, pass => 0, name => 'foo');
     like([$ok->default_diag], [qr/Failed test 'foo'\nat foo\.t line 42/], "got diag w/name");
 };
 
@@ -277,7 +277,7 @@ describe to_tap => sub {
     };
 
     tests name_and_number => sub {
-        my $ok = Test::Stream::Event::Ok->new(debug => $dbg, pass => $pass, name => 'foo');
+        my $ok = Test::Sync::Event::Ok->new(debug => $dbg, pass => $pass, name => 'foo');
         my @tap = $ok->to_tap(7);
         is(
             \@tap,
@@ -289,7 +289,7 @@ describe to_tap => sub {
     };
 
     tests no_number => sub {
-        my $ok = Test::Stream::Event::Ok->new(debug => $dbg, pass => $pass, name => 'foo');
+        my $ok = Test::Sync::Event::Ok->new(debug => $dbg, pass => $pass, name => 'foo');
         my @tap = $ok->to_tap();
         is(
             \@tap,
@@ -301,7 +301,7 @@ describe to_tap => sub {
     };
 
     tests no_name => sub {
-        my $ok = Test::Stream::Event::Ok->new(debug => $dbg, pass => $pass);
+        my $ok = Test::Sync::Event::Ok->new(debug => $dbg, pass => $pass);
         my @tap = $ok->to_tap(7);
         is(
             \@tap,
@@ -316,7 +316,7 @@ describe to_tap => sub {
         $dbg->set_todo('a');
         $dbg->set_skip('b');
 
-        my $ok = Test::Stream::Event::Ok->new(debug => $dbg, pass => $pass);
+        my $ok = Test::Sync::Event::Ok->new(debug => $dbg, pass => $pass);
         my @tap = $ok->to_tap(7);
         is(
             \@tap,
@@ -341,7 +341,7 @@ describe to_tap => sub {
     tests skip => sub {
         $dbg->set_skip('b');
 
-        my $ok = Test::Stream::Event::Ok->new(debug => $dbg, pass => $pass);
+        my $ok = Test::Sync::Event::Ok->new(debug => $dbg, pass => $pass);
         my @tap = $ok->to_tap(7);
         is(
             \@tap,
@@ -366,7 +366,7 @@ describe to_tap => sub {
     tests todo => sub {
         $dbg->set_todo('b');
 
-        my $ok = Test::Stream::Event::Ok->new(debug => $dbg, pass => $pass);
+        my $ok = Test::Sync::Event::Ok->new(debug => $dbg, pass => $pass);
         my @tap = $ok->to_tap(7);
         is(
             \@tap,
@@ -389,7 +389,7 @@ describe to_tap => sub {
     };
 
     tests empty_diag_array => sub {
-        my $ok = Test::Stream::Event::Ok->new(debug => $dbg, pass => $pass, diag => []);
+        my $ok = Test::Sync::Event::Ok->new(debug => $dbg, pass => $pass, diag => []);
         my @tap = $ok->to_tap(7);
         is(
             \@tap,
@@ -399,7 +399,7 @@ describe to_tap => sub {
             "Got expected output (No diag)"
         );
 
-        $ok = Test::Stream::Event::Ok->new(debug => $dbg, pass => $pass);
+        $ok = Test::Sync::Event::Ok->new(debug => $dbg, pass => $pass);
         @tap = $ok->to_tap(7);
         is(
             \@tap,

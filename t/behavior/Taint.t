@@ -1,5 +1,5 @@
 #!/usr/bin/env perl -T
-use Test::Stream Core;
+use Test::Sync Core;
 
 plan(2);
 

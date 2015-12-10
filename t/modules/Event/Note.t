@@ -1,14 +1,14 @@
-use Test::Stream -V1;
+use Test::Sync -V1;
 use strict;
 use warnings;
 
-use Test::Stream::Event::Note;
-use Test::Stream::DebugInfo;
+use Test::Sync::Event::Note;
+use Test::Sync::DebugInfo;
 
-use Test::Stream::Formatter::TAP qw/OUT_STD/;
+use Test::Sync::Formatter::TAP qw/OUT_STD/;
 
-my $note = Test::Stream::Event::Note->new(
-    debug => Test::Stream::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__]),
+my $note = Test::Sync::Event::Note->new(
+    debug => Test::Sync::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__]),
     message => 'foo',
 );
 
@@ -34,15 +34,15 @@ warns {
     );
 };
 
-$note = Test::Stream::Event::Note->new(
-    debug => Test::Stream::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__]),
+$note = Test::Sync::Event::Note->new(
+    debug => Test::Sync::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__]),
     message => undef,
 );
 
 is($note->message, 'undef', "set undef message to undef");
 
-$note = Test::Stream::Event::Note->new(
-    debug => Test::Stream::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__]),
+$note = Test::Sync::Event::Note->new(
+    debug => Test::Sync::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__]),
     message => {},
 );
 

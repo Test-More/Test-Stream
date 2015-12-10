@@ -1,10 +1,10 @@
-use Test::Stream -V1;
+use Test::Sync -V1;
 
-use Test::Stream::Formatter::TAP qw/OUT_STD OUT_ERR/;
-use Test::Stream::Event::Subtest;
-my $st = 'Test::Stream::Event::Subtest';
+use Test::Sync::Formatter::TAP qw/OUT_STD OUT_ERR/;
+use Test::Sync::Event::Subtest;
+my $st = 'Test::Sync::Event::Subtest';
 
-my $dbg = Test::Stream::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__, 'xxx']);
+my $dbg = Test::Sync::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__, 'xxx']);
 my $one = $st->new(
     debug     => $dbg,
     pass      => 1,
@@ -12,7 +12,7 @@ my $one = $st->new(
     name      => 'foo',
 );
 
-isa_ok($one, $st, 'Test::Stream::Event::Ok');
+isa_ok($one, $st, 'Test::Sync::Event::Ok');
 is($one->subevents, [], "subevents is an arrayref");
 
 warns {
@@ -37,7 +37,7 @@ warns {
     );
 };
 
-$dbg = Test::Stream::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__, 'xxx']);
+$dbg = Test::Sync::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__, 'xxx']);
 $one = $st->new(
     debug     => $dbg,
     pass      => 0,
@@ -45,13 +45,13 @@ $one = $st->new(
     name      => 'bar',
     diag      => [ 'bar failed' ],
     subevents => [
-        Test::Stream::Event::Ok->new(debug => $dbg, name => 'first',  pass => 1),
-        Test::Stream::Event::Ok->new(debug => $dbg, name => 'second', pass => 0, diag => ["second failed"]),
-        Test::Stream::Event::Ok->new(debug => $dbg, name => 'third',  pass => 1),
+        Test::Sync::Event::Ok->new(debug => $dbg, name => 'first',  pass => 1),
+        Test::Sync::Event::Ok->new(debug => $dbg, name => 'second', pass => 0, diag => ["second failed"]),
+        Test::Sync::Event::Ok->new(debug => $dbg, name => 'third',  pass => 1),
 
-        Test::Stream::Event::Diag->new(debug => $dbg, message => 'blah blah'),
+        Test::Sync::Event::Diag->new(debug => $dbg, message => 'blah blah'),
 
-        Test::Stream::Event::Plan->new(debug => $dbg, max => 3),
+        Test::Sync::Event::Plan->new(debug => $dbg, max => 3),
     ],
 );
 

@@ -1,4 +1,4 @@
-use Test::Stream -V1, -Tester, Subtest => [qw/subtest_streamed subtest_buffered/];
+use Test::Sync -V1, -Tester, Subtest => [qw/subtest_streamed subtest_buffered/];
 
 use File::Temp qw/tempfile/;
 
@@ -11,7 +11,7 @@ if ($] > 5.020000) {
             subtest_streamed 'foo' => sub {
                 my ($fh, $name) = tempfile;
                 print $fh <<"                EOT";
-                    use Test::Stream -V1;
+                    use Test::Sync -V1;
                     BEGIN { skip_all 'because' }
                     1;
                 EOT
@@ -37,14 +37,14 @@ if ($] > 5.020000) {
 }
 
 subtest_streamed 'hub tests' => sub {
-    my $hub = Test::Stream::Sync->stack->top;
-    isa_ok($hub, 'Test::Stream::Hub', 'Test::Stream::Hub::Subtest');
+    my $hub = Test::Sync::Sync->stack->top;
+    isa_ok($hub, 'Test::Sync::Hub', 'Test::Sync::Hub::Subtest');
     ok(!defined($hub->parent_todo), "parent todo not defined outside todo");
 
     my $todo = todo "testing parent_todo";
     subtest_streamed 'inner hub tests' => sub {
-        my $ihub = Test::Stream::Sync->stack->top;
-        isa_ok($ihub, 'Test::Stream::Hub', 'Test::Stream::Hub::Subtest');
+        my $ihub = Test::Sync::Sync->stack->top;
+        isa_ok($ihub, 'Test::Sync::Hub', 'Test::Sync::Hub::Subtest');
         ok(defined($ihub->parent_todo), "parent todo defined inside todo");
     };
 };

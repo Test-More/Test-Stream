@@ -1,7 +1,7 @@
-use Test::Stream -V1;
+use Test::Sync -V1;
 
-use Test::Stream::Hub::Interceptor::Terminator;
+use Test::Sync::Hub::Interceptor::Terminator;
 
-ok($INC{'Test/Stream/Hub/Interceptor/Terminator.pm'}, "loaded");
+ok($INC{'Test/Sync/Hub/Interceptor/Terminator.pm'}, "loaded");
 
 done_testing;

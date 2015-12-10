@@ -1,7 +1,7 @@
-use Test::Stream -V1, class => 'Test::Stream::SyncObj';
+use Test::Sync -V1, class => 'Test::SyncObj';
 
-use Test::Stream::Util qw/get_tid/;
-use Test::Stream::Capabilities qw/CAN_THREAD CAN_REALLY_FORK/;
+use Test::Sync::Util qw/get_tid/;
+use Test::Sync::Capabilities qw/CAN_THREAD CAN_REALLY_FORK/;
 
 can_ok(
     $CLASS,
@@ -87,11 +87,11 @@ like(
 );
 
 $one->reset;
-isa_ok($one->ipc, 'Test::Stream::IPC');
+isa_ok($one->ipc, 'Test::Sync::IPC');
 ok($one->finalized, "calling ipc finalized the object");
 
 $one->reset;
-isa_ok($one->stack, 'Test::Stream::Stack');
+isa_ok($one->stack, 'Test::Sync::Stack');
 ok($one->finalized, "calling stack finalized the object");
 
 $one->reset;
@@ -101,7 +101,7 @@ ok($one->finalized, "calling format finalized the object");
 {
     $one->reset;
     local %INC = %INC;
-    delete $INC{'Test/Stream/IPC.pm'};
+    delete $INC{'Test/Sync/IPC.pm'};
     ok(!$one->ipc, 'IPC not loaded, no IPC object');
     ok($one->finalized, "calling ipc finalized the object");
 }
@@ -114,12 +114,12 @@ ok($one->finalized, "calling format finalized the object");
 {
     local $ENV{TS_FORMATTER} = 'TAP';
     $one->reset;
-    is($one->format, 'Test::Stream::Formatter::TAP', "got specified formatter");
+    is($one->format, 'Test::Sync::Formatter::TAP', "got specified formatter");
     ok($one->finalized, "calling format finalized the object");
 
-    local $ENV{TS_FORMATTER} = '+Test::Stream::Formatter::TAP';
+    local $ENV{TS_FORMATTER} = '+Test::Sync::Formatter::TAP';
     $one->reset;
-    is($one->format, 'Test::Stream::Formatter::TAP', "got specified formatter");
+    is($one->format, 'Test::Sync::Formatter::TAP', "got specified formatter");
     ok($one->finalized, "calling format finalized the object");
 
     local $ENV{TS_FORMATTER} = '+Fake';
@@ -235,7 +235,7 @@ if (CAN_THREAD && $] ge '5.010') {
 
 {
     local %INC = %INC;
-    delete $INC{'Test/Stream/IPC.pm'};
+    delete $INC{'Test/Sync/IPC.pm'};
     $one->reset();
     my @events;
     $one->stack->top->filter(sub { push @events => $_[1]; undef});

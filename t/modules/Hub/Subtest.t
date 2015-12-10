@@ -1,27 +1,27 @@
-use Test::Stream -V1, -Tester, 'Defer';
+use Test::Sync -V1, -Tester, 'Defer';
 
-use Test::Stream::Hub::Subtest;
+use Test::Sync::Hub::Subtest;
 
 my $ran = 0;
 my $event;
 
-my $one = Test::Stream::Hub::Subtest->new(
+my $one = Test::Sync::Hub::Subtest->new(
     nested => 3,
 );
 
-isa_ok($one, 'Test::Stream::Hub::Subtest', 'Test::Stream::Hub');
+isa_ok($one, 'Test::Sync::Hub::Subtest', 'Test::Sync::Hub');
 
 {
-    my $mock = mock 'Test::Stream::Hub' => (
+    my $mock = mock 'Test::Sync::Hub' => (
         override => [
             process => sub { $ran++; (undef, $event) = @_; 'P!' },
         ],
     );
 
-    my $ok = Test::Stream::Event::Ok->new(
+    my $ok = Test::Sync::Event::Ok->new(
         pass => 1,
         name => 'blah',
-        debug => Test::Stream::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__, 'xxx']),
+        debug => Test::Sync::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__, 'xxx']),
     );
 
     def is => ($one->process($ok), 'P!', "processed");
@@ -33,9 +33,9 @@ isa_ok($one, 'Test::Stream::Hub::Subtest', 'Test::Stream::Hub');
     $ran = 0;
     $event = undef;
 
-    my $bail = Test::Stream::Event::Bail->new(
+    my $bail = Test::Sync::Event::Bail->new(
         message => 'blah',
-        debug => Test::Stream::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__, 'xxx']),
+        debug => Test::Sync::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__, 'xxx']),
     );
 
     def is => ($one->process($bail), 'P!', "processed");

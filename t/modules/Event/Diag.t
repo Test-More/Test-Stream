@@ -1,12 +1,12 @@
-use Test::Stream -V1, Compare => ['-all'];
+use Test::Sync -V1, Compare => ['-all'];
 
-use Test::Stream::Event::Diag;
-use Test::Stream::DebugInfo;
+use Test::Sync::Event::Diag;
+use Test::Sync::DebugInfo;
 
-use Test::Stream::Formatter::TAP qw/OUT_TODO OUT_ERR/;
+use Test::Sync::Formatter::TAP qw/OUT_TODO OUT_ERR/;
 
-my $diag = Test::Stream::Event::Diag->new(
-    debug => Test::Stream::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__]),
+my $diag = Test::Sync::Event::Diag->new(
+    debug => Test::Sync::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__]),
     message => 'foo',
 );
 
@@ -39,15 +39,15 @@ warns {
     );
 };
 
-$diag = Test::Stream::Event::Diag->new(
-    debug => Test::Stream::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__]),
+$diag = Test::Sync::Event::Diag->new(
+    debug => Test::Sync::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__]),
     message => undef,
 );
 
 is($diag->message, 'undef', "set undef message to undef");
 
-$diag = Test::Stream::Event::Diag->new(
-    debug => Test::Stream::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__]),
+$diag = Test::Sync::Event::Diag->new(
+    debug => Test::Sync::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__]),
     message => {},
 );
 

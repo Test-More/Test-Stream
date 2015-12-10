@@ -1,8 +1,8 @@
-use Test::Stream -V1;
+use Test::Sync -V1;
 
-use Test::Stream::Table qw/table/;
+use Test::Sync::Table qw/table/;
 
-use Test::Stream::Capabilities qw/CAN_FORK CAN_REALLY_FORK CAN_THREAD/;
+use Test::Sync::Capabilities qw/CAN_FORK CAN_REALLY_FORK CAN_THREAD/;
 
 diag "\nDIAGNOSTICS INFO IN CASE OF FAILURE:\n";
 diag(join "\n", table(rows => [[ 'perl', $] ]]));

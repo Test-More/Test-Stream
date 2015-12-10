@@ -1,6 +1,6 @@
-use Test::Stream -V1, -Tester;
+use Test::Sync -V1, -Tester;
 
-use Test::Stream::Context qw/context release/;
+use Test::Sync::Context qw/context release/;
 
 can_ok(__PACKAGE__, qw/context release/);
 
@@ -25,7 +25,7 @@ sub wrap(&) {
 wrap {
     my $ctx = shift;
     ok($ctx->hub, "got hub");
-    isa_ok($ctx->hub, 'Test::Stream::Hub');
+    isa_ok($ctx->hub, 'Test::Sync::Hub');
     delete $ctx->debug->frame->[4];
     is($ctx->debug->frame, $frame, "Found place to report errors");
 };
@@ -115,26 +115,26 @@ is(
     }
 }
 my $events = bless [], 'My::Formatter';
-my $hub = Test::Stream::Hub->new(
+my $hub = Test::Sync::Hub->new(
     formatter => $events,
 );
-my $dbg = Test::Stream::DebugInfo->new(
+my $dbg = Test::Sync::DebugInfo->new(
     frame => [ 'Foo::Bar', 'foo_bar.t', 42, 'Foo::Bar::baz' ],
 );
-my $ctx = Test::Stream::Context->new(
+my $ctx = Test::Sync::Context->new(
     debug => $dbg,
     hub   => $hub,
 );
 
 my $e = $ctx->build_event('Ok', pass => 1, name => 'foo');
-isa_ok($e, 'Test::Stream::Event::Ok');
+isa_ok($e, 'Test::Sync::Event::Ok');
 is($e->pass, 1, "Pass");
 is($e->name, 'foo', "got name");
 is($e->debug, $dbg, "Got the debug info");
 ok(!@$events, "No events yet");
 
 $e = $ctx->send_event('Ok', pass => 1, name => 'foo');
-isa_ok($e, 'Test::Stream::Event::Ok');
+isa_ok($e, 'Test::Sync::Event::Ok');
 is($e->pass, 1, "Pass");
 is($e->name, 'foo', "got name");
 is($e->debug, $dbg, "Got the debug info");
@@ -143,7 +143,7 @@ is($events, [$e], "Hub saw the event");
 pop @$events;
 
 $e = $ctx->ok(1, 'foo');
-isa_ok($e, 'Test::Stream::Event::Ok');
+isa_ok($e, 'Test::Sync::Event::Ok');
 is($e->pass, 1, "Pass");
 is($e->name, 'foo', "got name");
 is($e->debug, $dbg, "Got the debug info");
@@ -152,7 +152,7 @@ is($events, [$e], "Hub saw the event");
 pop @$events;
 
 $e = $ctx->note('foo');
-isa_ok($e, 'Test::Stream::Event::Note');
+isa_ok($e, 'Test::Sync::Event::Note');
 is($e->message, 'foo', "got message");
 is($e->debug, $dbg, "Got the debug info");
 is(@$events, 1, "1 event");
@@ -160,7 +160,7 @@ is($events, [$e], "Hub saw the event");
 pop @$events;
 
 $e = $ctx->diag('foo');
-isa_ok($e, 'Test::Stream::Event::Diag');
+isa_ok($e, 'Test::Sync::Event::Diag');
 is($e->message, 'foo', "got message");
 is($e->debug, $dbg, "Got the debug info");
 is(@$events, 1, "1 event");
@@ -168,7 +168,7 @@ is($events, [$e], "Hub saw the event");
 pop @$events;
 
 $e = $ctx->plan(100);
-isa_ok($e, 'Test::Stream::Event::Plan');
+isa_ok($e, 'Test::Sync::Event::Plan');
 is($e->max, 100, "got max");
 is($e->debug, $dbg, "Got the debug info");
 is(@$events, 1, "1 event");
@@ -177,7 +177,7 @@ pop @$events;
 
 # Test todo (deprecated)
 my ($dbg1, $dbg2);
-my $todo = Test::Stream::Sync->stack->top->set_todo("Here be dragons");
+my $todo = Test::Sync->stack->top->set_todo("Here be dragons");
 wrap { $dbg1 = shift->debug };
 $todo = undef;
 wrap { $dbg2 = shift->debug };
@@ -189,11 +189,11 @@ is($dbg2->_todo, undef, "no todo in context created after todo was removed");
 # Test hooks
 
 my @hooks;
-$hub =  Test::Stream::Sync->stack->top;
+$hub =  Test::Sync->stack->top;
 my $ref1 = $hub->add_context_init(sub { push @hooks => 'hub_init' });
 my $ref2 = $hub->add_context_release(sub { push @hooks => 'hub_release' });
-Test::Stream::Context->ON_INIT(sub { push @hooks => 'global_init' });
-Test::Stream::Context->ON_RELEASE(sub { push @hooks => 'global_release' });
+Test::Sync::Context->ON_INIT(sub { push @hooks => 'global_init' });
+Test::Sync::Context->ON_RELEASE(sub { push @hooks => 'global_release' });
 
 sub {
     push @hooks => 'start';
@@ -217,8 +217,8 @@ sub {
 
 $hub->remove_context_init($ref1);
 $hub->remove_context_release($ref2);
-@Test::Stream::Context::ON_INIT = ();
-@Test::Stream::Context::ON_RELEASE = ();
+@Test::Sync::Context::ON_INIT = ();
+@Test::Sync::Context::ON_RELEASE = ();
 
 is(
     \@hooks,
@@ -252,9 +252,9 @@ is(
     my $ctx = context(level => -1);
 
     local $@ = 'testing error';
-    my $one = Test::Stream::Context->new(
-        debug => Test::Stream::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__, 'blah']),
-        hub => Test::Stream::Sync->stack->top,
+    my $one = Test::Sync::Context->new(
+        debug => Test::Sync::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__, 'blah']),
+        hub => Test::Sync->stack->top,
     );
     is($one->_err, 'testing error', "Copied \$@");
     is($one->_depth, 0, "default depth");
@@ -281,7 +281,7 @@ is(
         my $ctx = context();
 
         local $? = 0;
-        $warnings = warns { Test::Stream::Context::_do_end() };
+        $warnings = warns { Test::Sync::Context::_do_end() };
         $exit = $?;
 
         $ctx->release;
@@ -303,16 +303,16 @@ is(
 }
 
 {
-    like(dies { Test::Stream::Context->new() }, qr/The 'debug' attribute is required/, "need to have debug");
+    like(dies { Test::Sync::Context->new() }, qr/The 'debug' attribute is required/, "need to have debug");
 
-    my $debug = Test::Stream::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__, 'foo']);
-    like(dies { Test::Stream::Context->new(debug => $debug) }, qr/The 'hub' attribute is required/, "need to have hub");
+    my $debug = Test::Sync::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__, 'foo']);
+    like(dies { Test::Sync::Context->new(debug => $debug) }, qr/The 'hub' attribute is required/, "need to have hub");
 
-    my $hub = Test::Stream::Sync->stack->top;
-    my $ctx = Test::Stream::Context->new(debug => $debug, hub => $hub);
+    my $hub = Test::Sync->stack->top;
+    my $ctx = Test::Sync::Context->new(debug => $debug, hub => $hub);
     is($ctx->{_depth}, 0, "depth set to 0 when not defined.");
 
-    $ctx = Test::Stream::Context->new(debug => $debug, hub => $hub, _depth => 1);
+    $ctx = Test::Sync::Context->new(debug => $debug, hub => $hub, _depth => 1);
     is($ctx->{_depth}, 1, "Do not reset depth");
 
     like(
@@ -406,8 +406,8 @@ sub {
     $ctx = $clone->snapshot;
     $clone->release;
 
-    is($ctx->_parse_event('Ok'), 'Test::Stream::Event::Ok', "Got the Ok event class");
-    is($ctx->_parse_event('+Test::Stream::Event::Ok'), 'Test::Stream::Event::Ok', "Got the +Ok event class");
+    is($ctx->_parse_event('Ok'), 'Test::Sync::Event::Ok', "Got the Ok event class");
+    is($ctx->_parse_event('+Test::Sync::Event::Ok'), 'Test::Sync::Event::Ok', "Got the +Ok event class");
 
     like(
         dies { $ctx->_parse_event('+DFASGFSDFGSDGSD') },

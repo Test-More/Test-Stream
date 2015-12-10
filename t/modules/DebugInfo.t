@@ -1,14 +1,14 @@
-use Test::Stream -V1, -Tester;
-use Test::Stream::DebugInfo;
+use Test::Sync -V1, -Tester;
+use Test::Sync::DebugInfo;
 
 like(
-    dies { 'Test::Stream::DebugInfo'->new() },
+    dies { 'Test::Sync::DebugInfo'->new() },
     qr/Frame is required/,
     "got error"
 );
 
-my $one = 'Test::Stream::DebugInfo'->new(frame => ['Foo::Bar', 'foo.t', 5, 'Foo::Bar::foo']);
-isa_ok($one, 'Test::Stream::DebugInfo');
+my $one = 'Test::Sync::DebugInfo'->new(frame => ['Foo::Bar', 'foo.t', 5, 'Foo::Bar::foo']);
+isa_ok($one, 'Test::Sync::DebugInfo');
 is($one->frame,  ['Foo::Bar', 'foo.t', 5, 'Foo::Bar::foo'], "Got frame");
 is([$one->call], ['Foo::Bar', 'foo.t', 5, 'Foo::Bar::foo'], "Got call");
 is($one->package, 'Foo::Bar',      "Got package");

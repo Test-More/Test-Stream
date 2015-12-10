@@ -1,8 +1,8 @@
 use strict;
 use warnings;
 
-use Test::Stream::Sync;
-use Test::Stream::Context qw/context/;
+use Test::Sync;
+use Test::Sync::Context qw/context/;
 
 sub done_testing {
     my $ctx = context();
@@ -22,7 +22,7 @@ sub ok($;$) {
 
 ok(1, "First");
 
-my $todo = Test::Stream::Sync->stack->top->set_todo('here be dragons');
+my $todo = Test::Sync->stack->top->set_todo('here be dragons');
 ok(0, "Second");
 $todo = undef;
 

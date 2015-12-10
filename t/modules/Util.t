@@ -1,9 +1,9 @@
 use strict;
 use warnings;
 
-use Test::Stream -V1, Compare => '*';
+use Test::Sync -V1, Compare => '*';
 
-use Test::Stream::Util '-all';
+use Test::Sync::Util '-all';
 
 imported_ok qw{
     try protect pkg_to_file
@@ -28,7 +28,7 @@ imported_ok qw{
 
 $! = 100;
 
-for my $protect (\&protect, Test::Stream::Util->can('_manual_protect'), Test::Stream::Util->can('_local_protect')) {
+for my $protect (\&protect, Test::Sync::Util->can('_manual_protect'), Test::Sync::Util->can('_local_protect')) {
     my $ok = eval { $protect->(sub { die "xxx" }); 1 };
     ok(!$ok, "protect did not capture exception");
     like($@, qr/xxx/, "expected exception");
@@ -40,7 +40,7 @@ for my $protect (\&protect, Test::Stream::Util->can('_manual_protect'), Test::St
     ok($! == 100, "\$! did not change");
 }
 
-for my $try (\&try, Test::Stream::Util->can('_manual_try'), Test::Stream::Util->can('_local_try')) {
+for my $try (\&try, Test::Sync::Util->can('_manual_try'), Test::Sync::Util->can('_local_try')) {
     $@ = 'foo';
     my ($ok, $err) = $try->(sub { die "xxx" });
     ok(!$ok, "cought exception");

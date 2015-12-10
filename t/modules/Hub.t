@@ -1,5 +1,5 @@
-use Test::Stream -V1, -SpecTester, Compare => [qw/is like match/];
-use Test::Stream::Capabilities qw/CAN_FORK CAN_THREAD CAN_REALLY_FORK/;
+use Test::Sync -V1, -SpecTester, Compare => [qw/is like match/];
+use Test::Sync::Capabilities qw/CAN_FORK CAN_THREAD CAN_REALLY_FORK/;
 
 {
     package My::Formatter;
@@ -17,12 +17,12 @@ use Test::Stream::Capabilities qw/CAN_FORK CAN_THREAD CAN_REALLY_FORK/;
 {
     package My::Event;
 
-    use base 'Test::Stream::Event';
-    use Test::Stream::HashBase accessors => [qw/msg/];
+    use base 'Test::Sync::Event';
+    use Test::Sync::HashBase accessors => [qw/msg/];
 }
 
 tests basic => sub {
-    my $hub = Test::Stream::Hub->new(
+    my $hub = Test::Sync::Hub->new(
         formatter => My::Formatter->new,
     );
 
@@ -47,10 +47,10 @@ tests basic => sub {
 };
 
 tests follow_ups => sub {
-    my $hub = Test::Stream::Hub->new;
+    my $hub = Test::Sync::Hub->new;
     $hub->state->set_count(1);
 
-    my $dbg = Test::Stream::DebugInfo->new(
+    my $dbg = Test::Sync::DebugInfo->new(
         frame => [__PACKAGE__, __FILE__, __LINE__],
     );
 
@@ -87,10 +87,10 @@ tests follow_ups => sub {
 };
 
 tests IPC => sub {
-    my ($driver) = Test::Stream::IPC->drivers;
-    is($driver, 'Test::Stream::IPC::Files', "Default Driver");
+    my ($driver) = Test::Sync::IPC->drivers;
+    is($driver, 'Test::Sync::IPC::Files', "Default Driver");
     my $ipc = $driver->new;
-    my $hub = Test::Stream::Hub->new(
+    my $hub = Test::Sync::Hub->new(
         formatter => My::Formatter->new,
         ipc => $ipc,
     );
@@ -153,7 +153,7 @@ tests IPC => sub {
 };
 
 tests listen => sub {
-    my $hub = Test::Stream::Hub->new();
+    my $hub = Test::Sync::Hub->new();
 
     my @events;
     my @counts;
@@ -167,26 +167,26 @@ tests listen => sub {
     my $second;
     my $it2 = $hub->listen(sub { $second++ });
 
-    my $ok1 = Test::Stream::Event::Ok->new(
+    my $ok1 = Test::Sync::Event::Ok->new(
         pass => 1,
         name => 'foo',
-        debug => Test::Stream::DebugInfo->new(
+        debug => Test::Sync::DebugInfo->new(
             frame => [ __PACKAGE__, __FILE__, __LINE__ ],
         ),
     );
 
-    my $ok2 = Test::Stream::Event::Ok->new(
+    my $ok2 = Test::Sync::Event::Ok->new(
         pass => 0,
         name => 'bar',
-        debug => Test::Stream::DebugInfo->new(
+        debug => Test::Sync::DebugInfo->new(
             frame => [ __PACKAGE__, __FILE__, __LINE__ ],
         ),
     );
 
-    my $ok3 = Test::Stream::Event::Ok->new(
+    my $ok3 = Test::Sync::Event::Ok->new(
         pass => 1,
         name => 'baz',
-        debug => Test::Stream::DebugInfo->new(
+        debug => Test::Sync::DebugInfo->new(
             frame => [ __PACKAGE__, __FILE__, __LINE__ ],
         ),
     );
@@ -210,7 +210,7 @@ tests listen => sub {
 };
 
 tests metadata => sub {
-    my $hub = Test::Stream::Hub->new();
+    my $hub = Test::Sync::Hub->new();
 
     my $default = { foo => 1 };
     my $meta = $hub->meta('Foo', $default);
@@ -253,7 +253,7 @@ tests metadata => sub {
 tests munge => sub {
     my @warnings;
     local $SIG{__WARN__} = sub { push @warnings => @_ };
-    my $hub = Test::Stream::Hub->new();
+    my $hub = Test::Sync::Hub->new();
 
     my @events;
     my $it = $hub->munge(sub {
@@ -265,26 +265,26 @@ tests munge => sub {
     my $count;
     my $it2 = $hub->munge(sub { $count++ });
 
-    my $ok1 = Test::Stream::Event::Ok->new(
+    my $ok1 = Test::Sync::Event::Ok->new(
         pass => 1,
         name => 'foo',
-        debug => Test::Stream::DebugInfo->new(
+        debug => Test::Sync::DebugInfo->new(
             frame => [ __PACKAGE__, __FILE__, __LINE__ ],
         ),
     );
 
-    my $ok2 = Test::Stream::Event::Ok->new(
+    my $ok2 = Test::Sync::Event::Ok->new(
         pass => 0,
         name => 'bar',
-        debug => Test::Stream::DebugInfo->new(
+        debug => Test::Sync::DebugInfo->new(
             frame => [ __PACKAGE__, __FILE__, __LINE__ ],
         ),
     );
 
-    my $ok3 = Test::Stream::Event::Ok->new(
+    my $ok3 = Test::Sync::Event::Ok->new(
         pass => 1,
         name => 'baz',
-        debug => Test::Stream::DebugInfo->new(
+        debug => Test::Sync::DebugInfo->new(
             frame => [ __PACKAGE__, __FILE__, __LINE__ ],
         ),
     );
@@ -299,7 +299,7 @@ tests munge => sub {
     is(\@events, [$ok1, $ok2], "got events");
     is($count, 3, "got all events, even after other munger was removed");
 
-    $hub = Test::Stream::Hub->new();
+    $hub = Test::Sync::Hub->new();
     @events = ();
 
     $hub->munge(sub { $_[1] = undef });
@@ -334,7 +334,7 @@ tests munge => sub {
 };
 
 tests filter => sub {
-    my $hub = Test::Stream::Hub->new();
+    my $hub = Test::Sync::Hub->new();
 
     my @events;
     my $it = $hub->filter(sub {
@@ -347,26 +347,26 @@ tests filter => sub {
     my $count;
     my $it2 = $hub->filter(sub { $count++; $_[1] });
 
-    my $ok1 = Test::Stream::Event::Ok->new(
+    my $ok1 = Test::Sync::Event::Ok->new(
         pass => 1,
         name => 'foo',
-        debug => Test::Stream::DebugInfo->new(
+        debug => Test::Sync::DebugInfo->new(
             frame => [ __PACKAGE__, __FILE__, __LINE__ ],
         ),
     );
 
-    my $ok2 = Test::Stream::Event::Ok->new(
+    my $ok2 = Test::Sync::Event::Ok->new(
         pass => 0,
         name => 'bar',
-        debug => Test::Stream::DebugInfo->new(
+        debug => Test::Sync::DebugInfo->new(
             frame => [ __PACKAGE__, __FILE__, __LINE__ ],
         ),
     );
 
-    my $ok3 = Test::Stream::Event::Ok->new(
+    my $ok3 = Test::Sync::Event::Ok->new(
         pass => 1,
         name => 'baz',
-        debug => Test::Stream::DebugInfo->new(
+        debug => Test::Sync::DebugInfo->new(
             frame => [ __PACKAGE__, __FILE__, __LINE__ ],
         ),
     );
@@ -381,7 +381,7 @@ tests filter => sub {
     is(\@events, [$ok1, $ok2], "got events");
     is($count, 3, "got all events, even after other filter was removed");
 
-    $hub = Test::Stream::Hub->new();
+    $hub = Test::Sync::Hub->new();
     @events = ();
 
     $hub->filter(sub { undef });
@@ -404,7 +404,7 @@ tests filter => sub {
 };
 
 tests todo_system => sub {
-    my $hub = Test::Stream::Hub->new();
+    my $hub = Test::Sync::Hub->new();
 
     {
         my $todo = $hub->set_todo('foo');

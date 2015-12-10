@@ -1,10 +1,10 @@
-use Test::Stream -V1, -SpecTester, '!UTF8', Compare => '*';
+use Test::Sync -V1, -SpecTester, '!UTF8', Compare => '*';
 use PerlIO;
 
-use Test::Stream::Formatter::TAP qw/OUT_STD OUT_ERR OUT_TODO/;
+use Test::Sync::Formatter::TAP qw/OUT_STD OUT_ERR OUT_TODO/;
 
-ok(my $one = Test::Stream::Formatter::TAP->new, "Created a new instance");
-isa_ok($one, 'Test::Stream::Formatter::TAP');
+ok(my $one = Test::Sync::Formatter::TAP->new, "Created a new instance");
+isa_ok($one, 'Test::Sync::Formatter::TAP');
 my $handles = $one->handles;
 is(@$handles, 3, "Got 3 handles");
 is($handles->[0], $handles->[2], "First and last handles are the same");
@@ -25,7 +25,7 @@ is(@$handles, 3, "Got 3 handles");
 $layers = { map {$_ => 1} PerlIO::get_layers($handles->[0]) };
 ok($layers->{utf8}, "Now utf8");
 
-my $two = Test::Stream::Formatter::TAP->new(encoding => 'utf8');
+my $two = Test::Sync::Formatter::TAP->new(encoding => 'utf8');
 $handles = $two->handles;
 is(@$handles, 3, "Got 3 handles");
 $layers = { map {$_ => 1} PerlIO::get_layers($handles->[0]) };
@@ -34,12 +34,12 @@ ok($layers->{utf8}, "Now utf8");
 
 {
     package My::Event;
-    use Test::Stream::Formatter::TAP qw/OUT_STD OUT_ERR/;
+    use Test::Sync::Formatter::TAP qw/OUT_STD OUT_ERR/;
 
-    use base 'Test::Stream::Event';
-    use Test::Stream::HashBase accessors => [qw/pass name diag note/];
+    use base 'Test::Sync::Event';
+    use Test::Sync::HashBase accessors => [qw/pass name diag note/];
 
-    Test::Stream::Formatter::TAP->register_event(
+    Test::Sync::Formatter::TAP->register_event(
         __PACKAGE__,
         sub {
             my $self = shift;
@@ -57,7 +57,7 @@ my ($std, $err);
 open( my $stdh, '>', \$std ) || die "Ooops";
 open( my $errh, '>', \$err ) || die "Ooops";
 
-my $it = Test::Stream::Formatter::TAP->new(
+my $it = Test::Sync::Formatter::TAP->new(
     handles => [$stdh, $errh, $stdh],
 );
 
@@ -104,18 +104,18 @@ close($errh);
 open( $stdh, '>', \$std ) || die "Ooops";
 open( $errh, '>', \$err ) || die "Ooops";
 
-$it = Test::Stream::Formatter::TAP->new(
+$it = Test::Sync::Formatter::TAP->new(
     handles    => [$stdh, $errh, $stdh],
     no_diag    => 1,
     no_header  => 1,
     no_numbers => 1,
 );
 
-my $dbg = Test::Stream::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__, 'foo']);
-my $ok = Test::Stream::Event::Ok->new(pass => 1, name => 'xxx', debug => $dbg);
-my $diag = Test::Stream::Event::Diag->new(msg => 'foo', debug => $dbg);
-my $plan = Test::Stream::Event::Plan->new(max => 5,     debug => $dbg);
-my $bail = Test::Stream::Event::Bail->new(reason => 'foo', nested => 1, debug => $dbg);
+my $dbg = Test::Sync::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__, 'foo']);
+my $ok = Test::Sync::Event::Ok->new(pass => 1, name => 'xxx', debug => $dbg);
+my $diag = Test::Sync::Event::Diag->new(msg => 'foo', debug => $dbg);
+my $plan = Test::Sync::Event::Plan->new(max => 5,     debug => $dbg);
+my $bail = Test::Sync::Event::Bail->new(reason => 'foo', nested => 1, debug => $dbg);
 
 $it->write($_, 1) for $ok, $diag, $plan, $bail;
 
@@ -124,10 +124,10 @@ is($std, "ok - xxx\n", "Only got the 'ok'");
 is($err, "", "no diag");
 
 describe events => sub {
-    my $fmt = Test::Stream::Formatter::TAP->new;
+    my $fmt = Test::Sync::Formatter::TAP->new;
     my $dbg;
     before_each dbg => sub {
-        $dbg = Test::Stream::DebugInfo->new(
+        $dbg = Test::Sync::DebugInfo->new(
             frame => ['main_foo', 'foo.t', 42, 'main_foo::flubnarb'],
         );
     };
@@ -147,7 +147,7 @@ describe events => sub {
     };
 
     tests bail => sub {
-        my $bail = Test::Stream::Event::Bail->new(
+        my $bail = Test::Sync::Event::Bail->new(
             debug => $dbg,
             reason => 'evil',
         );
@@ -160,7 +160,7 @@ describe events => sub {
     };
 
     tests diag => sub {
-        my $diag = Test::Stream::Event::Diag->new(
+        my $diag = Test::Sync::Event::Diag->new(
             debug => $dbg,
             message => 'foo',
         );
@@ -201,7 +201,7 @@ describe events => sub {
     };
 
     tests exception => sub {
-        my $exception = Test::Stream::Event::Exception->new(
+        my $exception = Test::Sync::Event::Exception->new(
             debug => $dbg,
             error => "evil at lake_of_fire.t line 6\n",
         );
@@ -214,7 +214,7 @@ describe events => sub {
     };
 
     tests note => sub {
-        my $note = Test::Stream::Event::Note->new(
+        my $note = Test::Sync::Event::Note->new(
             debug => $dbg,
             message => 'foo',
         );
@@ -255,7 +255,7 @@ describe events => sub {
         case fail => sub { $pass = 0 };
 
         tests name_and_number => sub {
-            my $ok = Test::Stream::Event::Ok->new(debug => $dbg, pass => $pass, name => 'foo');
+            my $ok = Test::Sync::Event::Ok->new(debug => $dbg, pass => $pass, name => 'foo');
             my @tap = $fmt->event_tap($ok, 7);
             is(
                 \@tap,
@@ -267,7 +267,7 @@ describe events => sub {
         };
 
         tests no_number => sub {
-            my $ok = Test::Stream::Event::Ok->new(debug => $dbg, pass => $pass, name => 'foo');
+            my $ok = Test::Sync::Event::Ok->new(debug => $dbg, pass => $pass, name => 'foo');
             my @tap = $fmt->event_tap($ok, );
             is(
                 \@tap,
@@ -279,7 +279,7 @@ describe events => sub {
         };
 
         tests no_name => sub {
-            my $ok = Test::Stream::Event::Ok->new(debug => $dbg, pass => $pass);
+            my $ok = Test::Sync::Event::Ok->new(debug => $dbg, pass => $pass);
             my @tap = $fmt->event_tap($ok, 7);
             is(
                 \@tap,
@@ -294,7 +294,7 @@ describe events => sub {
         tests skip_and_todo => sub {
             warns { $dbg->set_skip('b') };
 
-            my $ok = Test::Stream::Event::Ok->new(debug => $dbg, pass => $pass);
+            my $ok = Test::Sync::Event::Ok->new(debug => $dbg, pass => $pass);
             $ok->$set_todo('a');
             my @tap = $fmt->event_tap($ok, 7);
             is(
@@ -321,7 +321,7 @@ describe events => sub {
         tests skip => sub {
             warns { $dbg->set_skip('b') };
 
-            my $ok = Test::Stream::Event::Ok->new(debug => $dbg, pass => $pass);
+            my $ok = Test::Sync::Event::Ok->new(debug => $dbg, pass => $pass);
             my @tap = $fmt->event_tap($ok, 7);
             is(
                 \@tap,
@@ -344,7 +344,7 @@ describe events => sub {
         };
 
         tests todo => sub {
-            my $ok = Test::Stream::Event::Ok->new(debug => $dbg, pass => $pass);
+            my $ok = Test::Sync::Event::Ok->new(debug => $dbg, pass => $pass);
             $ok->$set_todo('b');
             my @tap = $fmt->event_tap($ok, 7);
             is(
@@ -368,7 +368,7 @@ describe events => sub {
         };
 
         tests empty_diag_array => sub {
-            my $ok = Test::Stream::Event::Ok->new(debug => $dbg, pass => $pass, diag => []);
+            my $ok = Test::Sync::Event::Ok->new(debug => $dbg, pass => $pass, diag => []);
             my @tap = $fmt->event_tap($ok, 7);
             is(
                 \@tap,
@@ -378,7 +378,7 @@ describe events => sub {
                 "Got expected output (No diag)"
             );
 
-            $ok = Test::Stream::Event::Ok->new(debug => $dbg, pass => $pass);
+            $ok = Test::Sync::Event::Ok->new(debug => $dbg, pass => $pass);
             @tap = $fmt->event_tap($ok, 7);
             is(
                 \@tap,
@@ -390,7 +390,7 @@ describe events => sub {
         };
 
         tests diag => sub {
-            my $ok = Test::Stream::Event::Ok->new(
+            my $ok = Test::Sync::Event::Ok->new(
                 debug => $dbg,
                 pass  => 0,
                 name  => 'the_test',
@@ -409,7 +409,7 @@ describe events => sub {
     };
 
     tests plan => sub {
-        my $plan = Test::Stream::Event::Plan->new(
+        my $plan = Test::Sync::Event::Plan->new(
             debug => $dbg,
             max => 100,
         );
@@ -429,7 +429,7 @@ describe events => sub {
             "Got tap for skip_all"
         );
 
-        $plan = Test::Stream::Event::Plan->new(
+        $plan = Test::Sync::Event::Plan->new(
             debug => $dbg,
             max => 0,
             directive => 'skip_all',
@@ -440,7 +440,7 @@ describe events => sub {
             "SKIP without reason"
         );
 
-        $plan = Test::Stream::Event::Plan->new(
+        $plan = Test::Sync::Event::Plan->new(
             debug => $dbg,
             max => 0,
             directive => 'no_plan',
@@ -453,7 +453,7 @@ describe events => sub {
     };
 
     tests subtest => sub {
-        my $st = 'Test::Stream::Event::Subtest';
+        my $st = 'Test::Sync::Event::Subtest';
 
         my $one = $st->new(
             debug     => $dbg,
@@ -487,13 +487,13 @@ describe events => sub {
             name      => 'bar',
             diag      => [ 'bar failed' ],
             subevents => [
-                Test::Stream::Event::Ok->new(debug => $dbg, name => 'first',  pass => 1),
-                Test::Stream::Event::Ok->new(debug => $dbg, name => 'second', pass => 0, diag => ["second failed"]),
-                Test::Stream::Event::Ok->new(debug => $dbg, name => 'third',  pass => 1),
+                Test::Sync::Event::Ok->new(debug => $dbg, name => 'first',  pass => 1),
+                Test::Sync::Event::Ok->new(debug => $dbg, name => 'second', pass => 0, diag => ["second failed"]),
+                Test::Sync::Event::Ok->new(debug => $dbg, name => 'third',  pass => 1),
 
-                Test::Stream::Event::Diag->new(debug => $dbg, message => 'blah blah'),
+                Test::Sync::Event::Diag->new(debug => $dbg, message => 'blah blah'),
 
-                Test::Stream::Event::Plan->new(debug => $dbg, max => 3),
+                Test::Sync::Event::Plan->new(debug => $dbg, max => 3),
             ],
         );
 

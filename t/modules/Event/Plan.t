@@ -1,15 +1,15 @@
-use Test::Stream -V1;
+use Test::Sync -V1;
 use strict;
 use warnings;
 
-use Test::Stream::Event::Plan;
-use Test::Stream::DebugInfo;
-use Test::Stream::State;
+use Test::Sync::Event::Plan;
+use Test::Sync::DebugInfo;
+use Test::Sync::State;
 
-use Test::Stream::Formatter::TAP qw/OUT_STD/;
+use Test::Sync::Formatter::TAP qw/OUT_STD/;
 
-my $plan = Test::Stream::Event::Plan->new(
-    debug => Test::Stream::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__]),
+my $plan = Test::Sync::Event::Plan->new(
+    debug => Test::Sync::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__]),
     max => 100,
 );
 
@@ -21,7 +21,7 @@ warns {
     );
 };
 ok(!$plan->global, "regular plan is not a global event");
-my $state = Test::Stream::State->new;
+my $state = Test::Sync::State->new;
 $plan->update_state($state);
 is($state->plan, 100, "set plan in state");
 is($plan->terminate, undef, "No terminate for normal plan");
@@ -37,7 +37,7 @@ warns {
     );
 };
 ok($plan->global, "plan is global on skip all");
-$state = Test::Stream::State->new;
+$state = Test::Sync::State->new;
 $plan->update_state($state);
 is($state->plan, 'SKIP', "set plan in state");
 is($plan->terminate, 0, "Terminate 0 on skip_all");
@@ -45,7 +45,7 @@ is($plan->terminate, 0, "Terminate 0 on skip_all");
 $plan->set_max(0);
 $plan->set_directive('NO PLAN');
 $plan->set_reason(undef);
-$state = Test::Stream::State->new;
+$state = Test::Sync::State->new;
 $plan->update_state($state);
 is($state->plan, 'NO PLAN', "set plan in state");
 is($plan->terminate, undef, "No terminate for no_plan");
@@ -55,8 +55,8 @@ $plan->update_state($state);
 is($state->plan, '100', "Update plan in state if it is 'NO PLAN'");
 
 
-$plan = Test::Stream::Event::Plan->new(
-    debug => Test::Stream::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__]),
+$plan = Test::Sync::Event::Plan->new(
+    debug => Test::Sync::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__]),
     max => 0,
     directive => 'skip_all',
 );
@@ -69,8 +69,8 @@ warns {
     );
 };
 
-$plan = Test::Stream::Event::Plan->new(
-    debug => Test::Stream::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__]),
+$plan = Test::Sync::Event::Plan->new(
+    debug => Test::Sync::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__]),
     max => 0,
     directive => 'no_plan',
 );
@@ -86,8 +86,8 @@ warns {
 
 like(
     dies {
-        $plan = Test::Stream::Event::Plan->new(
-            debug     => Test::Stream::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__]),
+        $plan = Test::Sync::Event::Plan->new(
+            debug     => Test::Sync::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__]),
             max       => 0,
             directive => 'foo',
         );
@@ -98,8 +98,8 @@ like(
 
 like(
     dies {
-        $plan = Test::Stream::Event::Plan->new(
-            debug  => Test::Stream::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__]),
+        $plan = Test::Sync::Event::Plan->new(
+            debug  => Test::Sync::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__]),
             max    => 0,
             reason => 'foo',
         );
@@ -110,8 +110,8 @@ like(
 
 like(
     dies {
-        $plan = Test::Stream::Event::Plan->new(
-            debug  => Test::Stream::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__]),
+        $plan = Test::Sync::Event::Plan->new(
+            debug  => Test::Sync::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__]),
         );
     },
     qr/No number of tests specified/,
@@ -120,8 +120,8 @@ like(
 
 like(
     dies {
-        $plan = Test::Stream::Event::Plan->new(
-            debug  => Test::Stream::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__]),
+        $plan = Test::Sync::Event::Plan->new(
+            debug  => Test::Sync::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__]),
             max => 'skip',
         );
     },
