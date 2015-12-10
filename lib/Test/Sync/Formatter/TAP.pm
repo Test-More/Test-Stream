@@ -13,9 +13,10 @@ sub OUT_TODO() { 2 }
 
 use Carp qw/croak/;
 
-use Test::Sync::Exporter qw/import exports/;
-exports qw/OUT_STD OUT_ERR OUT_TODO/;
-no Test::Sync::Exporter;
+use base 'Test::Sync::Formatter';
+
+our @EXPORT_OK = qw/OUT_STD OUT_ERR OUT_TODO/;
+use base 'Exporter';
 
 my %CONVERTERS = (
     'Test::Sync::Event::Ok'        => \&_ok_event,

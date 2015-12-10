@@ -9,6 +9,9 @@ use Test::Sync::Util qw/get_tid try pkg_to_file/;
 use Test::Sync();
 use Test::Sync::DebugInfo();
 
+our @EXPORT_OK = qw/context/;
+use base 'Exporter';
+
 # Preload some key event types
 my %LOADED = (
     map {
@@ -43,15 +46,6 @@ sub _do_end {
 
     $? = $new;
 }
-
-use Test::Sync::Exporter qw/import exports export/;
-exports qw/context/;
-export release => sub($;@) {
-    $_[0]->release;
-    shift; # Remove undef that used to be our $self reference.
-    return @_ > 1 ? @_ : $_[0];
-};
-no Test::Sync::Exporter;
 
 use Test::Sync::HashBase(
     accessors => [qw/stack hub debug _on_release _depth _err _no_destroy_warning/],
