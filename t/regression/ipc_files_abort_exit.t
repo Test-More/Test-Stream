@@ -13,15 +13,15 @@ plan(3);
 
 pipe(my ($read, $write));
 
-Test::Sync->stack->top;
-my $hub = Test::Sync->stack->new_hub();
+Test::Sync::Global->stack->top;
+my $hub = Test::Sync::Global->stack->new_hub();
 
 my $pid = fork();
 die "Failed to fork" unless defined $pid;
 
 if ($pid) {
     close($read);
-    Test::Sync->stack->pop($hub);
+    Test::Sync::Global->stack->pop($hub);
     $hub = undef;
     print $write "Go\n";
     close($write);

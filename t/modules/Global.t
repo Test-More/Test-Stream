@@ -1,20 +1,20 @@
 use strict;
 use warnings;
 
-use Test::Sync;
+use Test::Sync::Global;
 
 my ($LOADED, $INIT, $POST_LOAD);
 BEGIN {
-    $INIT   = Test::Sync->init_done;
-    $LOADED = Test::Sync->loaded;
-    Test::Sync->loaded(1);
-    $POST_LOAD = Test::Sync->loaded;
+    $INIT   = Test::Sync::Global->init_done;
+    $LOADED = Test::Sync::Global->loaded;
+    Test::Sync::Global->loaded(1);
+    $POST_LOAD = Test::Sync::Global->loaded;
 };
 
 use Test::Sync::IPC;
 use Test::Sync::Tester;
 use Test::Sync::Util qw/get_tid/;
-my $CLASS = 'Test::Sync';
+my $CLASS = 'Test::Sync::Global';
 
 ok(!$LOADED, "Was not loaded right away");
 ok(!$INIT, "Init was not done right away");
@@ -34,7 +34,7 @@ ok($POST_LOAD, "We loaded it");
     }
 
     our $kill1 = bless {fixed => 0, name => "Custom Hook"}, 'FOLLOW';
-    Test::Sync->add_hook(
+    Test::Sync::Global->add_hook(
         sub {
             print "# Running END hook\n";
             $kill1->{fixed} = 1;
@@ -42,9 +42,9 @@ ok($POST_LOAD, "We loaded it");
     );
 
     our $kill2 = bless {fixed => 0, name => "set exit"}, 'FOLLOW';
-    my $old = Test::Sync::Tracker->can('set_exit');
+    my $old = Test::Sync::Global::Tracker->can('set_exit');
     no warnings 'redefine';
-    *Test::Sync::Tracker::set_exit = sub {
+    *Test::Sync::Global::Tracker::set_exit = sub {
         $kill2->{fixed} = 1;
         print "# Running set_exit\n";
         $old->(@_);

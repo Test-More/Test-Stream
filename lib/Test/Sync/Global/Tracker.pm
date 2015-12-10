@@ -1,4 +1,4 @@
-package Test::Sync::Tracker;
+package Test::Sync::Global::Tracker;
 use strict;
 use warnings;
 
@@ -218,7 +218,7 @@ __END__
 
 =head1 NAME
 
-Test::Sync::Tracker - Object used by Sync to track global state
+Test::Sync::Global::Tracker - Object used by Sync to track global state
 
 =head1 DESCRIPTION
 
@@ -233,9 +233,9 @@ shape or form.
 
 =head1 SYNOPSIS
 
-    use Test::Sync::Tracker;
+    use Test::Sync::Global::Tracker;
 
-    my $obj = Test::Sync::Tracker->new;
+    my $obj = Test::Sync::Global::Tracker->new;
 
 =head1 METHODS
 

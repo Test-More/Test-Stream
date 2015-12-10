@@ -6,7 +6,7 @@ use Test::Sync::Tester;
 use Test::Sync::Util qw/get_tid/;
 use Test::Sync::Capabilities qw/CAN_THREAD CAN_REALLY_FORK/;
 
-my $CLASS = 'Test::Sync::Tracker';
+my $CLASS = 'Test::Sync::Global::Tracker';
 
 my $one = $CLASS->new;
 is_deeply(

@@ -133,7 +133,7 @@ pop @$events;
 # Test hooks
 
 my @hooks;
-$hub =  Test::Sync->stack->top;
+$hub =  Test::Sync::Global->stack->top;
 my $ref1 = $hub->add_context_init(sub { push @hooks => 'hub_init' });
 my $ref2 = $hub->add_context_release(sub { push @hooks => 'hub_release' });
 Test::Sync::Context->ON_INIT(sub { push @hooks => 'global_init' });
@@ -198,7 +198,7 @@ is_deeply(
     local $@ = 'testing error';
     my $one = Test::Sync::Context->new(
         debug => Test::Sync::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__, 'blah']),
-        hub => Test::Sync->stack->top,
+        hub => Test::Sync::Global->stack->top,
     );
     is($one->_err, 'testing error', "Copied \$@");
     is($one->_depth, 0, "default depth");
@@ -252,7 +252,7 @@ is_deeply(
     my $debug = Test::Sync::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__, 'foo']);
     like(exception { Test::Sync::Context->new(debug => $debug) }, qr/The 'hub' attribute is required/, "need to have hub");
 
-    my $hub = Test::Sync->stack->top;
+    my $hub = Test::Sync::Global->stack->top;
     my $ctx = Test::Sync::Context->new(debug => $debug, hub => $hub);
     is($ctx->{_depth}, 0, "depth set to 0 when not defined.");
 

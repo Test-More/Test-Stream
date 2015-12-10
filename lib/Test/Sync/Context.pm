@@ -6,7 +6,7 @@ use Scalar::Util qw/weaken/;
 use Carp qw/confess croak longmess cluck/;
 use Test::Sync::Util qw/get_tid try pkg_to_file/;
 
-use Test::Sync();
+use Test::Sync::Global();
 use Test::Sync::DebugInfo();
 
 our @EXPORT_OK = qw/context/;
@@ -22,7 +22,7 @@ my %LOADED = (
 );
 
 # Stack is ok to cache.
-our $STACK = Test::Sync->stack;
+our $STACK = Test::Sync::Global->stack;
 our @ON_INIT;
 our @ON_RELEASE;
 our %CONTEXTS;
@@ -159,7 +159,7 @@ sub context {
     # considered loaded...
     unless($LOADED) {
         $LOADED++;
-        Test::Sync->loaded(1);
+        Test::Sync::Global->loaded(1);
     }
 
     croak "context() called, but return value is ignored"

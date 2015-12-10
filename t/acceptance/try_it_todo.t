@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::Sync;
+use Test::Sync::Global;
 use Test::Sync::Context qw/context/;
 
 sub done_testing {
@@ -22,7 +22,7 @@ sub ok($;$) {
 
 ok(1, "First");
 
-my $todo = Test::Sync->stack->top->set_todo('here be dragons');
+my $todo = Test::Sync::Global->stack->top->set_todo('here be dragons');
 ok(0, "Second");
 $todo = undef;
 

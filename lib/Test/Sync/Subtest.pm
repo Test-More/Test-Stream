@@ -20,7 +20,7 @@ sub subtest {
 
     my $parent = $ctx->hub;
 
-    my $stack = $ctx->stack || Test::Sync->stack;
+    my $stack = $ctx->stack || Test::Sync::Global->stack;
     my $hub = $stack->new_hub(
         class => 'Test::Sync::Hub::Subtest',
     );

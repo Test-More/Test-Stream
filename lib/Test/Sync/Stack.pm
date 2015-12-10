@@ -23,10 +23,10 @@ sub new_hub {
         $hub->inherit($self->[-1], %params);
     }
     else {
-        $hub->format(Test::Sync->formatter->new)
+        $hub->format(Test::Sync::Global->formatter->new)
             unless $hub->format || exists($params{formatter});
 
-        my $ipc = Test::Sync->ipc;
+        my $ipc = Test::Sync::Global->ipc;
         if ($ipc && !$hub->ipc && !exists($params{ipc})) {
             $hub->set_ipc($ipc);
             $ipc->add_hub($hub->hid);
