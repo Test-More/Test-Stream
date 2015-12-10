@@ -91,4 +91,4 @@ test.pl
 
 POD_TEMPLATE.pod
 
-^Test-Stream-*
+^Test-Sync-*
