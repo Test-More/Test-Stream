@@ -418,7 +418,7 @@ sending events to the correct L<Test::Sync::Hub> instance.
 
 =head1 SYNOPSIS
 
-    use Test::Sync::Context qw/context release/;
+    use Test::Sync::Context qw/context/;
 
     sub my_ok {
         my ($bool, $name) = @_;
@@ -440,19 +440,6 @@ inherit it:
         my $out = my_ok($bool, $name);
         $ctx->release; # You MUST do this!
         return $out;
-    }
-
-Notice above that we are grabbing a return value, then releasing our context,
-then returning the value. We can combine these last 3 statements into a single
-statement using the C<release> function:
-
-    sub wrapper {
-        my ($bool, $name) = @_;
-        my $ctx = context();
-        $ctx->diag("wrapping my_ok");
-
-        # You must always release the context.
-        release $ctx, my_ok($bool, $name);
     }
 
 =head1 CRITICAL DETAILS
@@ -638,51 +625,6 @@ then all will be called in reverse order when the context is finally released.
 
 =back
 
-=head2 release()
-
-Usage:
-
-=over 4
-
-=item release $ctx;
-
-=item release $ctx, ...;
-
-=back
-
-This is intended as a shortcut that lets you release your context and return a
-value in one statement. This function will get your context, and any other
-arguments provided. It will release your context, then return everything else.
-If you only provide one argument it will return that one argument as a scalar.
-If you provide multiple arguments it will return them all as a list.
-
-    sub scalar_tool {
-        my $ctx = context();
-        ...
-
-        return release $ctx, 1;
-    }
-
-    sub list_tool {
-        my $ctx = context();
-        ...
-
-        return release $ctx, qw/a b c/;
-    }
-
-This tool is most useful when you want to return the value you get from calling
-a function that needs to see the current context:
-
-    my $ctx = context();
-    my $out = some_tool(...);
-    $ctx->release;
-    return $out;
-
-We can combine the last 3 lines of the above like so:
-
-    my $ctx = context();
-    release $ctx, some_tool(...);
-
 =head1 METHODS
 
 =head2 CLASS METHODS
@@ -785,6 +727,10 @@ This can be used to send an L<Test::Sync::Event::Plan> event. This event
 usually takes either a number of tests you expect to run. Optionally you can
 set the expected count to 0 and give the 'SKIP' directive with a reason to
 cause all tests to be skipped.
+
+=item $event = $ctx->skip($name, $reason);
+
+Send an L<Test::Stream::Event::Skip> event.
 
 =item $event = $ctx->bail($reason)
 

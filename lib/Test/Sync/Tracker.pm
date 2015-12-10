@@ -218,7 +218,7 @@ __END__
 
 =head1 NAME
 
-Test::Sync::Tracker - Object used by Sync under the hood
+Test::Sync::Tracker - Object used by Sync to track global state
 
 =head1 DESCRIPTION
 
