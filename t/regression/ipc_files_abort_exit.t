@@ -1,6 +1,9 @@
-use Test::Stream -V1;
-use Test::Stream::Context qw/context/;
-use Test::Stream::Capabilities qw/CAN_FORK/;
+use strict;
+use warnings;
+use Test::Sync::IPC;
+use Test::Sync::Tester;
+use Test::Sync qw/context/;
+use Test::Sync::Capabilities qw/CAN_FORK/;
 
 BEGIN {
     skip_all "System cannot fork" unless CAN_FORK;
@@ -10,15 +13,15 @@ plan(3);
 
 pipe(my ($read, $write));
 
-Test::Stream::Sync->stack->top;
-my $hub = Test::Stream::Sync->stack->new_hub();
+Test::Sync::Global->stack->top;
+my $hub = Test::Sync::Global->stack->new_hub();
 
 my $pid = fork();
 die "Failed to fork" unless defined $pid;
 
 if ($pid) {
     close($read);
-    Test::Stream::Sync->stack->pop($hub);
+    Test::Sync::Global->stack->pop($hub);
     $hub = undef;
     print $write "Go\n";
     close($write);

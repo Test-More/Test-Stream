@@ -1,14 +1,37 @@
-use Test::Stream -V1, Capture;
-use Test::Stream::Util qw/get_tid USE_THREADS/;
-
+use Test::Sync::Tester;
+use Test::Sync::Util qw/get_tid USE_THREADS try/;
 use File::Temp qw/tempfile/;
 
-require Test::Stream::IPC::Files;
-ok(my $ipc = Test::Stream::IPC::Files->new, "Created an IPC instance");
-isa_ok($ipc, 'Test::Stream::IPC::Files');
-isa_ok($ipc, 'Test::Stream::IPC');
+sub capture(&) {
+    my $code = shift;
 
-can_ok($ipc, qw/tempdir event_id tid pid/);
+    my ($err, $out) = ("", "");
+
+    my ($ok, $e);
+    {
+        local *STDOUT;
+        local *STDERR;
+
+        ($ok, $e) = try {
+            open(STDOUT, '>', \$out) or die "Failed to open a temporary STDOUT: $!";
+            open(STDERR, '>', \$err) or die "Failed to open a temporary STDERR: $!";
+
+            $code->();
+        };
+    }
+
+    die $e unless $ok;
+
+    return {
+        STDOUT => $out,
+        STDERR => $err,
+    };
+}
+
+require Test::Sync::IPC::Files;
+ok(my $ipc = Test::Sync::IPC::Files->new, "Created an IPC instance");
+ok($ipc->isa('Test::Sync::IPC::Files'), "Correct type");
+ok($ipc->isa('Test::Sync::IPC'), "inheritence");
 
 ok(-d $ipc->tempdir, "created temp dir");
 is($ipc->pid, $$, "stored pid");
@@ -21,7 +44,7 @@ ok(-f $ipc->tempdir . '/HUB-' . $hid, "wrote hub file");
 if(ok(open(my $fh, '<', $ipc->tempdir . '/HUB-' . $hid), "opened hub file")) {
     my @lines = <$fh>;
     close($fh);
-    is(
+    is_deeply(
         \@lines,
         [ "$$\n", get_tid() . "\n" ],
         "Wrote pid and tid to hub file"
@@ -30,7 +53,7 @@ if(ok(open(my $fh, '<', $ipc->tempdir . '/HUB-' . $hid), "opened hub file")) {
 
 {
     package Foo;
-    use base 'Test::Stream::Event';
+    use base 'Test::Sync::Event';
 }
 
 $ipc->send($hid, bless({ foo => 1 }, 'Foo'));
@@ -42,7 +65,7 @@ closedir($dh);
 is(@files, 2, "2 files added to the IPC directory");
 
 my @events = $ipc->cull($hid);
-is(
+is_deeply(
     \@events,
     [{ foo => 1 }, { bar => 1 }],
     "Culled both events"
@@ -66,27 +89,27 @@ $ipc = undef;
 ok(!-d $tmpdir, "cleaned up temp dir");
 
 {
-    my $ipc = Test::Stream::IPC::Files->new();
+    my $ipc = Test::Sync::IPC::Files->new();
 
     my $tmpdir = $ipc->tempdir;
 
-    my $ipc_thread_clone = bless {%$ipc}, 'Test::Stream::IPC::Files';
+    my $ipc_thread_clone = bless {%$ipc}, 'Test::Sync::IPC::Files';
     $ipc_thread_clone->set_tid(100);
     $ipc_thread_clone = undef;
     ok(-d $tmpdir, "Directory not removed (different thread)");
 
-    my $ipc_fork_clone = bless {%$ipc}, 'Test::Stream::IPC::Files';
+    my $ipc_fork_clone = bless {%$ipc}, 'Test::Sync::IPC::Files';
     $ipc_fork_clone->set_pid($$ + 10);
     $ipc_fork_clone = undef;
     ok(-d $tmpdir, "Directory not removed (different proc)");
 
 
-    $ipc_thread_clone = bless {%$ipc}, 'Test::Stream::IPC::Files';
+    $ipc_thread_clone = bless {%$ipc}, 'Test::Sync::IPC::Files';
     $ipc_thread_clone->set_tid(undef);
     $ipc_thread_clone = undef;
     ok(-d $tmpdir, "Directory not removed (no thread)");
 
-    $ipc_fork_clone = bless {%$ipc}, 'Test::Stream::IPC::Files';
+    $ipc_fork_clone = bless {%$ipc}, 'Test::Sync::IPC::Files';
     $ipc_fork_clone->set_pid(undef);
     $ipc_fork_clone = undef;
     ok(-d $tmpdir, "Directory not removed (no proc)");
@@ -96,16 +119,12 @@ ok(!-d $tmpdir, "cleaned up temp dir");
 }
 
 {
-    my $mock = mock 'Test::Stream::IPC::Files' => (
-        add => {
-            abort => sub {
-                my $self = shift;
-                local $self->{no_fatal} = 1;
-                $self->Test::Stream::IPC::abort(@_);
-                die 255;
-            },
-        },
-    );
+    local *Test::Sync::IPC::Files::abort = sub {
+        my $self = shift;
+        local $self->{no_fatal} = 1;
+        $self->Test::Sync::IPC::abort(@_);
+        die 255;
+    };
 
     my $tmpdir;
     my @lines;
@@ -114,7 +133,7 @@ ok(!-d $tmpdir, "cleaned up temp dir");
     my $out = capture {
         local $ENV{TS_KEEP_TEMPDIR} = 1;
 
-        my $ipc = Test::Stream::IPC::Files->new();
+        my $ipc = Test::Sync::IPC::Files->new();
         $tmpdir = $ipc->tempdir;
         $ipc->add_hub($hid);
         eval { $ipc->add_hub($hid) }; push @lines => __LINE__;
@@ -139,9 +158,9 @@ ok(!-d $tmpdir, "cleaned up temp dir");
     like($out->{STDERR}, qr/^IPC Fatal Error: File for hub '12345' does not exist/m, "Cannot remove hub twice");
 
     $out = capture {
-        my $ipc = Test::Stream::IPC::Files->new();
+        my $ipc = Test::Sync::IPC::Files->new();
         $ipc->add_hub($hid);
-        my $dbg = Test::Stream::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__, 'foo']);
+        my $dbg = Test::Sync::DebugInfo->new(frame => [__PACKAGE__, __FILE__, __LINE__, 'foo']);
         my $e = eval { $ipc->send($hid, bless({glob => \*ok, debug => $dbg}, 'Foo')); 1 };
         print STDERR $@ unless $e || $@ =~ m/^255/;
         $ipc->drop_hub($hid);
@@ -154,7 +173,7 @@ ok(!-d $tmpdir, "cleaned up temp dir");
     like($out->{STDERR}, qr/Error: Can't store GLOB items/, "Got cause");
 
     $out = capture {
-        my $ipc = Test::Stream::IPC::Files->new();
+        my $ipc = Test::Sync::IPC::Files->new();
         local $@;
         eval { $ipc->send($hid, bless({ foo => 1 }, 'Foo')) };
         print STDERR $@ unless $@ =~ m/^255/;
@@ -163,7 +182,7 @@ ok(!-d $tmpdir, "cleaned up temp dir");
     is($out->{STDERR}, "IPC Fatal Error: hub '12345' is not available! Failed to send event!\n", "Cannot send to missing hub");
 
     $out = capture {
-        my $ipc = Test::Stream::IPC::Files->new();
+        my $ipc = Test::Sync::IPC::Files->new();
         $ipc->add_hub($hid);
         $ipc->send($hid, bless({ foo => 1 }, 'Foo'));
         local $@;
@@ -174,7 +193,7 @@ ok(!-d $tmpdir, "cleaned up temp dir");
     like($out->{STDERR}, qr/IPC Fatal Error: Leftover files in the directory \(.*\.ready\)/, "What file");
 
     $out = capture {
-        my $ipc = Test::Stream::IPC::Files->new();
+        my $ipc = Test::Sync::IPC::Files->new();
         $ipc->add_hub($hid);
 
         eval { $ipc->send($hid, { foo => 1 }) };
@@ -187,7 +206,7 @@ ok(!-d $tmpdir, "cleaned up temp dir");
     like($out->{STDERR}, qr/IPC Fatal Error: 'xxx=HASH\(.*\)' is not an event object!/, "Cannot send non-event objects");
 
 
-    $ipc = Test::Stream::IPC::Files->new();
+    $ipc = Test::Sync::IPC::Files->new();
 
     my ($fh, $fn) = tempfile();
     print $fh "\n";
@@ -201,41 +220,41 @@ ok(!-d $tmpdir, "cleaned up temp dir");
         "Events must actually be events (must be blessed)"
     );
 
-    Storable::store(bless({}, 'Test::Stream::Event::FakeEvent'), $fn);
+    Storable::store(bless({}, 'Test::Sync::Event::FakeEvent'), $fn);
     $out = capture { eval { $ipc->read_event_file($fn) } };
     like(
         $out->{STDERR},
-        qr{IPC Fatal Error: Event has unknown type \(Test::Stream::Event::FakeEvent\), tried to load 'Test/Stream/Event/FakeEvent\.pm' but failed: Can't locate Test/Stream/Event/FakeEvent\.pm},
+        qr{IPC Fatal Error: Event has unknown type \(Test::Sync::Event::FakeEvent\), tried to load 'Test/Sync/Event/FakeEvent\.pm' but failed: Can't locate Test/Sync/Event/FakeEvent\.pm},
         "Events must actually be events (not a real module)"
     );
 
-    Storable::store(bless({}, 'Test::Stream'), $fn);
+    Storable::store(bless({}, 'Test::Sync'), $fn);
     $out = capture { eval { $ipc->read_event_file($fn) } };
     like(
         $out->{STDERR},
-        qr{'Test::Stream=HASH\(.*\)' is not a 'Test::Stream::Event' object},
+        qr{'Test::Sync=HASH\(.*\)' is not a 'Test::Sync::Event' object},
         "Events must actually be events (not an event type)"
     );
 
-    Storable::store(bless({}, 'Test::Stream::Event::Foo'), $fn);
+    Storable::store(bless({}, 'Foo'), $fn);
     $out = capture {
         local @INC;
         push @INC => ('t/lib', 'lib');
         eval { $ipc->read_event_file($fn) };
     };
-    ok(!$out->{STDERR}, "no problem");
-    ok(!$out->{STDOUT}, "no problem");
+    ok(!$out->{STDERR}, "no problem", $out->{STDERR});
+    ok(!$out->{STDOUT}, "no problem", $out->{STDOUT});
 
     unlink($fn);
 }
 
 {
-    my $ipc = Test::Stream::IPC::Files->new();
+    my $ipc = Test::Sync::IPC::Files->new();
     $ipc->add_hub($hid);
     $ipc->send('GLOBAL', bless({global => 1}, 'Foo'));
     $ipc->set_globals({});
     my @events = $ipc->cull($hid);
-    is(
+    is_deeply(
         \@events,
         [ {global => 1} ],
         "Got global event"
@@ -246,7 +265,7 @@ ok(!-d $tmpdir, "cleaned up temp dir");
 
     $ipc->set_globals({});
     @events = $ipc->cull($hid);
-    is(
+    is_deeply(
         \@events,
         [ {global => 1} ],
         "Still there"

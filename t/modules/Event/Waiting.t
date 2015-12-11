@@ -1,10 +1,10 @@
-use Test::Stream -V1;
 use strict;
 use warnings;
 
-use Test::Stream::Event::Waiting;
+use Test::Sync::Tester;
+use Test::Sync::Event::Waiting;
 
-my $waiting = Test::Stream::Event::Waiting->new(
+my $waiting = Test::Sync::Event::Waiting->new(
     debug => 'fake',
 );
 

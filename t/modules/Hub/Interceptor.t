@@ -1,19 +1,15 @@
-use Test::Stream -V1, Compare => '*';
+use strict;
+use warnings;
+use Test::Sync::Tester;
 
-use Test::Stream::Hub::Interceptor;
+use Test::Sync::Hub::Interceptor;
 
-my $one = Test::Stream::Hub::Interceptor->new();
+my $one = Test::Sync::Hub::Interceptor->new();
 
-isa_ok($one, 'Test::Stream::Hub::Interceptor', 'Test::Stream::Hub');
+ok($one->isa('Test::Sync::Hub'), "inheritence");;
 
-is(
-    dies { $one->terminate(55) },
-    object {
-        prop 'blessed' => 'Test::Stream::Hub::Interceptor::Terminator';
-        prop 'reftype' => 'SCALAR';
-        prop 'this' => \'55';
-    },
-    "terminate throws an exception"
-);
+my $e = exception { $one->terminate(55) };
+ok($e->isa('Test::Sync::Hub::Interceptor::Terminator'), "exception type");
+is($$e, 55, "Scalar reference value");
 
 done_testing;
