@@ -4,7 +4,7 @@ use Test::Sync::Tester;
 use PerlIO;
 
 use Test::Sync::Formatter::TAP qw/OUT_STD OUT_ERR OUT_TODO/;
-use Test::Sync::Context qw/context/;
+use Test::Sync qw/context/;
 use Test::Sync::Subtest qw/subtest/;
 
 ok(my $one = Test::Sync::Formatter::TAP->new, "Created a new instance");

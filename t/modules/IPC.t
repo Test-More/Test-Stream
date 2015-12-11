@@ -7,7 +7,7 @@ my @drivers;
 BEGIN { @drivers = Test::Sync::IPC->drivers };
 
 use Test::Sync::Tester;
-use Test::Sync::Context qw/context/;
+use Test::Sync qw/context/;
 use Test::Sync::Subtest qw/subtest/;
 sub tests {
     my ($name, $code) = @_;

@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use Test::Sync::IPC;
 use Test::Sync::Tester;
-use Test::Sync::Context qw/context/;
+use Test::Sync qw/context/;
 use Test::Sync::Capabilities qw/CAN_FORK/;
 
 BEGIN {

@@ -3,7 +3,7 @@ use warnings;
 
 use Test::Sync::IPC;
 use Test::Sync::Tester;
-use Test::Sync::Context qw/context/;
+use Test::Sync qw/context/;
 use Test::Sync::Subtest qw/subtest/;
 use Test::Sync::Capabilities qw/CAN_FORK CAN_THREAD CAN_REALLY_FORK/;
 

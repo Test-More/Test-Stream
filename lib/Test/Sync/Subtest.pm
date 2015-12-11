@@ -2,7 +2,7 @@ package Test::Sync::Subtest;
 use strict;
 use warnings;
 
-use Test::Sync::Context qw/context/;
+use Test::Sync qw/context/;
 use Test::Sync::Util qw/try/;
 
 use Test::Sync::Event::Subtest();

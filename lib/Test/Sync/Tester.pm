@@ -5,7 +5,7 @@ use warnings;
 use Scalar::Util qw/blessed/;
 
 use Test::Sync::Util qw/try/;
-use Test::Sync::Context qw/context/;
+use Test::Sync qw/context/;
 
 use Test::Sync::Hub::Interceptor();
 use Test::Sync::Hub::Interceptor::Terminator();

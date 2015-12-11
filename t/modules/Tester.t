@@ -4,7 +4,7 @@ use warnings;
 use Test::Sync::IPC;
 use Test::Sync::Tester;
 
-use Test::Sync::Context qw/context/;
+use Test::Sync qw/context/;
 
 ok(__PACKAGE__->can($_), "imported '$_\()'") for qw{
     intercept

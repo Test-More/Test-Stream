@@ -9,9 +9,6 @@ use Test::Sync::Util qw/get_tid try pkg_to_file/;
 use Test::Sync::Global();
 use Test::Sync::DebugInfo();
 
-our @EXPORT_OK = qw/context/;
-use base 'Exporter';
-
 # Preload some key event types
 my %LOADED = (
     map {
@@ -30,6 +27,22 @@ our %CONTEXTS;
 sub ON_INIT    { shift; push @ON_INIT => @_ }
 sub ON_RELEASE { shift; push @ON_RELEASE => @_ }
 
+use Test::Sync::HashBase(
+    accessors => [qw/stack hub debug _on_release _depth _err _no_destroy_warning/],
+);
+
+sub init {
+    confess "The 'debug' attribute is required"
+        unless $_[0]->{+DEBUG};
+
+    confess "The 'hub' attribute is required"
+        unless $_[0]->{+HUB};
+
+    $_[0]->{+_DEPTH} = 0 unless defined $_[0]->{+_DEPTH};
+
+    $_[0]->{+_ERR} = $@;
+}
+
 END { _do_end() }
 
 sub _do_end {
@@ -47,21 +60,85 @@ sub _do_end {
     $? = $new;
 }
 
-use Test::Sync::HashBase(
-    accessors => [qw/stack hub debug _on_release _depth _err _no_destroy_warning/],
-);
+# We want the context() sub to be defined as 'Test::Sync::context()'. The
+# Test::Sync module is the place that will export it. However for performance
+# and encapsulation reasons we actually need to define it in this current
+# scope.
+my $LOADED = 0;
+sub Test::Sync::context {
+    my %params = (level => 0, wrapped => 0, @_);
 
-sub init {
-    confess "The 'debug' attribute is required"
-        unless $_[0]->{+DEBUG};
+    # If something is getting a context then the sync system needs to be
+    # considered loaded...
+    unless($LOADED) {
+        $LOADED++;
+        Test::Sync::Global->loaded(1);
+    }
 
-    confess "The 'hub' attribute is required"
-        unless $_[0]->{+HUB};
+    croak "context() called, but return value is ignored"
+        unless defined wantarray;
 
-    $_[0]->{+_DEPTH} = 0 unless defined $_[0]->{+_DEPTH};
+    my $stack = $params{stack} || $STACK;
+    my $hub = $params{hub} || @$stack ? $stack->[-1] : $stack->top;
+    my $hid = $hub->{hid};
+    my $current = $CONTEXTS{$hid};
 
-    $_[0]->{+_ERR} = $@;
+    my $level = 1 + $params{level};
+    my ($pkg, $file, $line, $sub) = caller($level);
+    unless ($pkg) {
+        confess "Could not find context at depth $level" unless $params{fudge};
+        ($pkg, $file, $line, $sub) = caller(--$level) while ($level >= 0 && !$pkg);
+    }
+
+    my $depth = $level;
+    $depth++ while caller($depth + 1) && (!$current || $depth <= $current->{+_DEPTH} + $params{wrapped});
+    $depth -= $params{wrapped};
+
+    if ($current && $params{on_release} && $current->{+_DEPTH} < $depth) {
+        $current->{+_ON_RELEASE} ||= [];
+        push @{$current->{+_ON_RELEASE}} => $params{on_release};
+    }
+
+    return $current if $current && $current->{+_DEPTH} < $depth;
+
+    # Handle error condition of bad level
+    $current->_depth_error([$pkg, $file, $line, $sub, $depth])
+        if $current;
+
+    my $dbg = bless(
+        {
+            frame => [$pkg, $file, $line, $sub],
+            pid   => $$,
+            tid   => get_tid(),
+        },
+        'Test::Sync::DebugInfo'
+    );
+
+    $current = bless(
+        {
+            STACK()  => $stack,
+            HUB()    => $hub,
+            DEBUG()  => $dbg,
+            _DEPTH() => $depth,
+            _ERR()   => $@,
+            $params{on_release} ? (_ON_RELEASE() => [$params{on_release}]) : (),
+        },
+        __PACKAGE__
+    );
+
+    weaken($CONTEXTS{$hid} = $current);
+
+    $_->($current) for @ON_INIT;
+
+    if (my $hcbk = $hub->{_context_init}) {
+        $_->($current) for @$hcbk;
+    }
+
+    $params{on_init}->($current) if $params{on_init};
+
+    return $current;
 }
+
 
 sub snapshot { bless {%{$_[0]}}, __PACKAGE__ }
 
@@ -149,81 +226,6 @@ sub do_in_context {
         delete $CONTEXTS{$hid};
     }
     die $err unless $ok;
-}
-
-my $LOADED = 0;
-sub context {
-    my %params = (level => 0, wrapped => 0, @_);
-
-    # If something is getting a context then the sync system needs to be
-    # considered loaded...
-    unless($LOADED) {
-        $LOADED++;
-        Test::Sync::Global->loaded(1);
-    }
-
-    croak "context() called, but return value is ignored"
-        unless defined wantarray;
-
-    my $stack = $params{stack} || $STACK;
-    my $hub = $params{hub} || @$stack ? $stack->[-1] : $stack->top;
-    my $hid = $hub->{hid};
-    my $current = $CONTEXTS{$hid};
-
-    my $level = 1 + $params{level};
-    my ($pkg, $file, $line, $sub) = caller($level);
-    unless ($pkg) {
-        confess "Could not find context at depth $level" unless $params{fudge};
-        ($pkg, $file, $line, $sub) = caller(--$level) while ($level >= 0 && !$pkg);
-    }
-
-    my $depth = $level;
-    $depth++ while caller($depth + 1) && (!$current || $depth <= $current->{+_DEPTH} + $params{wrapped});
-    $depth -= $params{wrapped};
-
-    if ($current && $params{on_release} && $current->{+_DEPTH} < $depth) {
-        $current->{+_ON_RELEASE} ||= [];
-        push @{$current->{+_ON_RELEASE}} => $params{on_release};
-    }
-
-    return $current if $current && $current->{+_DEPTH} < $depth;
-
-    # Handle error condition of bad level
-    $current->_depth_error([$pkg, $file, $line, $sub, $depth])
-        if $current;
-
-    my $dbg = bless(
-        {
-            frame => [$pkg, $file, $line, $sub],
-            pid   => $$,
-            tid   => get_tid(),
-        },
-        'Test::Sync::DebugInfo'
-    );
-
-    $current = bless(
-        {
-            STACK()  => $stack,
-            HUB()    => $hub,
-            DEBUG()  => $dbg,
-            _DEPTH() => $depth,
-            _ERR()   => $@,
-            $params{on_release} ? (_ON_RELEASE() => [$params{on_release}]) : (),
-        },
-        __PACKAGE__
-    );
-
-    weaken($CONTEXTS{$hid} = $current);
-
-    $_->($current) for @ON_INIT;
-
-    if (my $hcbk = $hub->{_context_init}) {
-        $_->($current) for @$hcbk;
-    }
-
-    $params{on_init}->($current) if $params{on_init};
-
-    return $current;
 }
 
 sub _depth_error {

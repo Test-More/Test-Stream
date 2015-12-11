@@ -7,7 +7,7 @@ use Test::Sync::DebugInfo;
 use Test::Sync::Event::Ok;
 use Test::Sync::Event::Diag;
 
-use Test::Sync::Context qw/context/;
+use Test::Sync qw/context/;
 use Test::Sync::Subtest qw/subtest/;
 
 my $dbg;

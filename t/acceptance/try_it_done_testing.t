@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::Sync::Context qw/context/;
+use Test::Sync qw/context/;
 
 sub done_testing {
     my $ctx = context();

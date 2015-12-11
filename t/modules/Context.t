@@ -3,7 +3,7 @@ use warnings;
 
 use Test::Sync::Tester;
 
-use Test::Sync::Context qw/context/;
+use Test::Sync qw/context/;
 
 my $error = exception { context(); 1 };
 my $exception = "context() called, but return value is ignored at " . __FILE__ . ' line ' . (__LINE__ - 1);
