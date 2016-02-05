@@ -1,6 +1,13 @@
 # NAME
 
-Test::Stream - Successor to Test::More and Test::Builder.
+Test::Stream - \*\*DEPRECATED\*\* See Test2-Suite instead
+
+# DEPRECATED
+
+**This distribution is deprecated** in favor of [Test2](https://metacpan.org/pod/Test2), [Test2::Suite](https://metacpan.org/pod/Test2::Suite), and
+[Test2::Workflow](https://metacpan.org/pod/Test2::Workflow).
+
+See [Test::Stream::Manual::ToTest2](https://metacpan.org/pod/Test::Stream::Manual::ToTest2) for a conversion guide.
 
 # \*\*\*READ THIS FIRST\*\*\*
 

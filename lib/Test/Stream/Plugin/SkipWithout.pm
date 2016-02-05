@@ -84,6 +84,13 @@ __END__
 Test::Stream::Plugin::SkipWithout - Plugin to skip tests if certain package
 requirements are not met.
 
+=head1 DEPRECATED
+
+B<This distribution is deprecated> in favor of L<Test2>, L<Test2::Suite>, and
+L<Test2::Workflow>.
+
+See L<Test::Stream::Manual::ToTest2> for a conversion guide.
+
 =head1 DESCRIPTION
 
 Sometimes you have tests that are nice to run, but depend on tools that may not

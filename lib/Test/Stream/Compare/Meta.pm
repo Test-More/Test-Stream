@@ -96,6 +96,13 @@ __END__
 
 Test::Stream::Compare::Meta - Check library for meta-checks
 
+=head1 DEPRECATED
+
+B<This distribution is deprecated> in favor of L<Test2>, L<Test2::Suite>, and
+L<Test2::Workflow>.
+
+See L<Test::Stream::Manual::ToTest2> for a conversion guide.
+
 =head1 DESCRIPTION
 
 Sometimes in a deep comparison you want to run extra checks against an item

@@ -87,6 +87,13 @@ __END__
 
 Test::Stream::Exporter::Meta - Meta object for exporters.
 
+=head1 DEPRECATED
+
+B<This distribution is deprecated> in favor of L<Test2>, L<Test2::Suite>, and
+L<Test2::Workflow>.
+
+See L<Test::Stream::Manual::ToTest2> for a conversion guide.
+
 =head1 DESCRIPTION
 
 L<Test::Stream::Exporter> uses this package to manage exports.

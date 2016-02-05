@@ -1,5 +1,11 @@
 NAME
-    Test::Stream - Successor to Test::More and Test::Builder.
+    Test::Stream - **DEPRECATED** See Test2-Suite instead
+
+DEPRECATED
+    This distribution is deprecated in favor of Test2, Test2::Suite, and
+    Test2::Workflow.
+
+    See Test::Stream::Manual::ToTest2 for a conversion guide.
 
 ***READ THIS FIRST***
     This is not a drop-in replacement for Test::More.

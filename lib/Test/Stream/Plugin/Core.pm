@@ -423,6 +423,13 @@ __END__
 Test::Stream::Plugin::Core - Test::Stream implementation of the core testing
 tools.
 
+=head1 DEPRECATED
+
+B<This distribution is deprecated> in favor of L<Test2>, L<Test2::Suite>, and
+L<Test2::Workflow>.
+
+See L<Test::Stream::Manual::ToTest2> for a conversion guide.
+
 =head1 DESCRIPTION
 
 B<This is not a drop-in replacement for Test::More>.

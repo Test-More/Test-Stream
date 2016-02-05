@@ -99,6 +99,13 @@ __END__
 
 Test::Stream::Plugin::Grab - Object used to temporarily intercept all events.
 
+=head1 DEPRECATED
+
+B<This distribution is deprecated> in favor of L<Test2>, L<Test2::Suite>, and
+L<Test2::Workflow>.
+
+See L<Test::Stream::Manual::ToTest2> for a conversion guide.
+
 =head1 DESCRIPTION
 
 Once created this object will intercept and stash all events sent to the shared

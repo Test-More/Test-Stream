@@ -29,6 +29,13 @@ __END__
 Test::Stream::Plugin::CanThread - Skip a test file unless the system supports
 threading
 
+=head1 DEPRECATED
+
+B<This distribution is deprecated> in favor of L<Test2>, L<Test2::Suite>, and
+L<Test2::Workflow>.
+
+See L<Test::Stream::Manual::ToTest2> for a conversion guide.
+
 =head1 DESCRIPTION
 
 It is fairly common to write tests that need to use threads. Not all systems

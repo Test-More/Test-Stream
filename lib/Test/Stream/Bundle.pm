@@ -32,6 +32,13 @@ __END__
 
 Test::Stream::Bundle - Tools to help you write custom bundles.
 
+=head1 DEPRECATED
+
+B<This distribution is deprecated> in favor of L<Test2>, L<Test2::Suite>, and
+L<Test2::Workflow>.
+
+See L<Test::Stream::Manual::ToTest2> for a conversion guide.
+
 =head1 DESCRIPTION
 
 You can reduce your boilerplate by writing your own Test::Stream bundles. A

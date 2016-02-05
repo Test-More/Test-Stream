@@ -198,6 +198,13 @@ __END__
 
 Test::Stream::Table - Format a header and rows into a table
 
+=head1 DEPRECATED
+
+B<This distribution is deprecated> in favor of L<Test2>, L<Test2::Suite>, and
+L<Test2::Workflow>.
+
+See L<Test::Stream::Manual::ToTest2> for a conversion guide.
+
 =head1 DESCRIPTION
 
 This is used by some failing tests to provide diagnostics about what has gone

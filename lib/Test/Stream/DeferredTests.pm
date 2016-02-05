@@ -65,6 +65,13 @@ __END__
 
 Test::Stream::DeferredTests - Write tests that get executaed at a later time
 
+=head1 DEPRECATED
+
+B<This distribution is deprecated> in favor of L<Test2>, L<Test2::Suite>, and
+L<Test2::Workflow>.
+
+See L<Test::Stream::Manual::ToTest2> for a conversion guide.
+
 =head1 DESCRIPTION
 
 Sometimes you need to test things BEFORE loading L<Test::Stream>. This module

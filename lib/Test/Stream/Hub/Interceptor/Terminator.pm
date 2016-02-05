@@ -15,6 +15,13 @@ __END__
 Test::Stream::Hub::Interceptor::Terminator - Exception class used by
 Test::Stream::Hub::Interceptor
 
+=head1 DEPRECATED
+
+B<This distribution is deprecated> in favor of L<Test2>, L<Test2::Suite>, and
+L<Test2::Workflow>.
+
+See L<Test::Stream::Manual::ToTest2> for a conversion guide.
+
 =head1 SOURCE
 
 The source code repository for Test::Stream can be found at

@@ -23,6 +23,13 @@ __END__
 
 Test::Stream::Plugin::TAP - Plugin to set TAP as the default output formatter.
 
+=head1 DEPRECATED
+
+B<This distribution is deprecated> in favor of L<Test2>, L<Test2::Suite>, and
+L<Test2::Workflow>.
+
+See L<Test::Stream::Manual::ToTest2> for a conversion guide.
+
 =head1 DESCRIPTION
 
 L<Test::Stream> does not force you to use TAP output the way L<Test::Builder>

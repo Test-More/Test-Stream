@@ -33,6 +33,13 @@ __END__
 
 Test::Stream::Hub::Subtest - Hub used by subtests
 
+=head1 DEPRECATED
+
+B<This distribution is deprecated> in favor of L<Test2>, L<Test2::Suite>, and
+L<Test2::Workflow>.
+
+See L<Test::Stream::Manual::ToTest2> for a conversion guide.
+
 =head1 DESCRIPTION
 
 Subtests make use of this hub to route events.

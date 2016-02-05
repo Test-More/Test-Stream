@@ -116,6 +116,13 @@ __END__
 
 Test::Stream::State - Representation of the state of the testing
 
+=head1 DEPRECATED
+
+B<This distribution is deprecated> in favor of L<Test2>, L<Test2::Suite>, and
+L<Test2::Workflow>.
+
+See L<Test::Stream::Manual::ToTest2> for a conversion guide.
+
 =head1 METHODS
 
 =over 4

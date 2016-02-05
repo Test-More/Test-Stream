@@ -89,6 +89,13 @@ __END__
 
 Test::Stream::Event::Plan - The event of a plan
 
+=head1 DEPRECATED
+
+B<This distribution is deprecated> in favor of L<Test2>, L<Test2::Suite>, and
+L<Test2::Workflow>.
+
+See L<Test::Stream::Manual::ToTest2> for a conversion guide.
+
 =head1 DESCRIPTION
 
 Plan events are fired off whenever a plan is declared, done testing is called,

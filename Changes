@@ -1,5 +1,6 @@
 {{$NEXT}}
 
+    - Deprecate in favor of Test2
     - Update for upcoming Trace::Mask
 
 1.302026  2015-11-09 14:34:30-08:00 America/Los_Angeles

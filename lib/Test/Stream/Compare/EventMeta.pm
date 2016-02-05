@@ -27,6 +27,13 @@ __END__
 
 Test::Stream::Compare::EventMeta - Meta class for events in deep comparisons
 
+=head1 DEPRECATED
+
+B<This distribution is deprecated> in favor of L<Test2>, L<Test2::Suite>, and
+L<Test2::Workflow>.
+
+See L<Test::Stream::Manual::ToTest2> for a conversion guide.
+
 =head1 DESCRIPTION
 
 This is used in deep compariosns of event objects. You should probably never

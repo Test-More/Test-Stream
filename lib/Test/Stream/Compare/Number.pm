@@ -82,6 +82,13 @@ __END__
 
 Test::Stream::Compare::Number - Compare 2 values as numbers
 
+=head1 DEPRECATED
+
+B<This distribution is deprecated> in favor of L<Test2>, L<Test2::Suite>, and
+L<Test2::Workflow>.
+
+See L<Test::Stream::Manual::ToTest2> for a conversion guide.
+
 =head1 DESCRIPTION
 
 This is used to compare 2 numbers. You can also check that 2 numbers are not

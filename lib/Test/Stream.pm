@@ -207,7 +207,14 @@ __END__
 
 =head1 NAME
 
-Test::Stream - Successor to Test::More and Test::Builder.
+Test::Stream - **DEPRECATED** See Test2-Suite instead
+
+=head1 DEPRECATED
+
+B<This distribution is deprecated> in favor of L<Test2>, L<Test2::Suite>, and
+L<Test2::Workflow>.
+
+See L<Test::Stream::Manual::ToTest2> for a conversion guide.
 
 =head1 ***READ THIS FIRST***
 

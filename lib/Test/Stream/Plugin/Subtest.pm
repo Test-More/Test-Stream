@@ -145,6 +145,13 @@ The main difference is that streamed subtests are unreadable when combined with
 concurrency. Buffered subtests look fine with any number of concurrent threads
 and processes.
 
+=head1 DEPRECATED
+
+B<This distribution is deprecated> in favor of L<Test2>, L<Test2::Suite>, and
+L<Test2::Workflow>.
+
+See L<Test::Stream::Manual::ToTest2> for a conversion guide.
+
 =head1 SYNOPSIS
 
     use Test::Stream qw/Subtest/;

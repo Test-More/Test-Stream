@@ -99,6 +99,13 @@ __END__
 Test::Stream::HashBase - Base class for classes that use a hashref
 of a hash.
 
+=head1 DEPRECATED
+
+B<This distribution is deprecated> in favor of L<Test2>, L<Test2::Suite>, and
+L<Test2::Workflow>.
+
+See L<Test::Stream::Manual::ToTest2> for a conversion guide.
+
 =head1 SYNOPSIS
 
 A class:

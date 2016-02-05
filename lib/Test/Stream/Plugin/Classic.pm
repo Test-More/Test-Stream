@@ -183,6 +183,13 @@ __END__
 
 Test::Stream::Plugin::Classic - Classing (Test::More) style is and is_deeply.
 
+=head1 DEPRECATED
+
+B<This distribution is deprecated> in favor of L<Test2>, L<Test2::Suite>, and
+L<Test2::Workflow>.
+
+See L<Test::Stream::Manual::ToTest2> for a conversion guide.
+
 =head1 DESCRIPTION
 
 This provides C<is()> and C<is_deeply()> functions that behave close to the way

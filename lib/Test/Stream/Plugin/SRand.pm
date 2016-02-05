@@ -77,6 +77,13 @@ sub load_ts_plugin {
 Test::Stream::Plugin::SRand - Control the random seed for more controlled test
 environments.
 
+=head1 DEPRECATED
+
+B<This distribution is deprecated> in favor of L<Test2>, L<Test2::Suite>, and
+L<Test2::Workflow>.
+
+See L<Test::Stream::Manual::ToTest2> for a conversion guide.
+
 =head1 DESCRIPTION
 
 This module gives you control over the random seed used for your unit tests. In

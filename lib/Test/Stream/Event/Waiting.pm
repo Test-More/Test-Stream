@@ -18,6 +18,13 @@ __END__
 
 Test::Stream::Event::Waiting - Tell all procs/threads it is time to be done
 
+=head1 DEPRECATED
+
+B<This distribution is deprecated> in favor of L<Test2>, L<Test2::Suite>, and
+L<Test2::Workflow>.
+
+See L<Test::Stream::Manual::ToTest2> for a conversion guide.
+
 =head1 DESCRIPTION
 
 This event has no data of its own. This event is sent out by the IPC system

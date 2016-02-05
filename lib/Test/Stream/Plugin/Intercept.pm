@@ -71,6 +71,13 @@ __END__
 
 Test::Stream::Plugin::Intercept - Tool for intercepting test events.
 
+=head1 DEPRECATED
+
+B<This distribution is deprecated> in favor of L<Test2>, L<Test2::Suite>, and
+L<Test2::Workflow>.
+
+See L<Test::Stream::Manual::ToTest2> for a conversion guide.
+
 =head1 SYNOPSIS
 
     # Load the Intercept plugin, and others we need

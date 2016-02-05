@@ -62,6 +62,13 @@ __END__
 
 Test::Stream::Compare::String - Compare 2 values as strings
 
+=head1 DEPRECATED
+
+B<This distribution is deprecated> in favor of L<Test2>, L<Test2::Suite>, and
+L<Test2::Workflow>.
+
+See L<Test::Stream::Manual::ToTest2> for a conversion guide.
+
 =head1 DESCRIPTION
 
 This is used to compare 2 items after they are stringified. You can also check

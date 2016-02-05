@@ -467,6 +467,13 @@ __END__
 
 Test::Stream::Mock - Module for managing mocked classes and instances.
 
+=head1 DEPRECATED
+
+B<This distribution is deprecated> in favor of L<Test2>, L<Test2::Suite>, and
+L<Test2::Workflow>.
+
+See L<Test::Stream::Manual::ToTest2> for a conversion guide.
+
 =head1 DESCRIPTION
 
 This module lets you add and override methods for any package temporarily. When

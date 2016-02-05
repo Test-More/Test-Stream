@@ -103,6 +103,13 @@ __END__
 Test::Stream::Stack - Object to manage a stack of L<Test::Stream::Hub>
 instances.
 
+=head1 DEPRECATED
+
+B<This distribution is deprecated> in favor of L<Test2>, L<Test2::Suite>, and
+L<Test2::Workflow>.
+
+See L<Test::Stream::Manual::ToTest2> for a conversion guide.
+
 =head1 ***INTERNALS NOTE***
 
 B<The internals of this package are subject to change at any time!> The public
