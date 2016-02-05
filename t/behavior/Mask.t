@@ -1,4 +1,4 @@
-use Test::Stream -V1, Spec, skip_without => {'Trace::Mask' => '0.000005'}, Compare => '*';
+use Test::Stream -V1, Spec, skip_without => {'Trace::Mask' => '0.000007'}, Compare => '*';
 
 use Trace::Mask::Reference qw/trace/;
 use Test::Stream::Util qw/try protect/;
