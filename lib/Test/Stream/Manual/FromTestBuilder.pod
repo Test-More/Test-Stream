@@ -83,7 +83,7 @@ This function will do a deep comparison recursing into hashrefs, arrayrefs, and
 scalar refs. Any other values will be compared using string comparisons.
 
 Diagnostics have been improved as well, you will get a table with all the
-differences betwene the structures. Normally this will stop at 25 differences,
+differences between the structures. Normally this will stop at 25 differences,
 but the number can be tweaked using the C<$ENV{TS_MAX_DELTA}> environment
 variable.
 
