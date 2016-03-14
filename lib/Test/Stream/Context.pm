@@ -15,7 +15,7 @@ my %LOADED = (
         require "Test/Stream/Event/$_.pm";
         my $pkg = "Test::Stream::Event::$_";
         ( $pkg => $pkg, $_ => $pkg )
-    } qw/Ok Diag Note Plan Bail Exception Waiting/
+    } qw/Ok Diag Note Plan Bail Exception Waiting Skip/
 );
 
 # Stack is ok to cache.
@@ -195,7 +195,7 @@ sub context {
             frame => [$pkg, $file, $line, $sub],
             pid   => $$,
             tid   => get_tid(),
-            $hub->debug_todo,
+            $hub->_debug_todo,
         },
         'Test::Stream::DebugInfo'
     );
@@ -305,21 +305,29 @@ sub ok {
     my $self = shift;
     my ($pass, $name, $diag) = @_;
 
+    my $hub = $self->{+HUB};
+
     my $e = bless {
         debug => bless( {%{$self->{+DEBUG}}}, 'Test::Stream::DebugInfo'),
         pass  => $pass,
         name  => $name,
+        $hub->_fast_todo,
     }, 'Test::Stream::Event::Ok';
     $e->init;
 
-    return $self->{+HUB}->send($e) if $pass;
+    return $hub->send($e) if $pass;
 
     $diag ||= [];
     unshift @$diag => $e->default_diag;
-
     $e->set_diag($diag);
 
-    $self->{+HUB}->send($e);
+    $hub->send($e);
+}
+
+sub skip {
+    my $self = shift;
+    my ($name, $reason) = @_;
+    $self->send_event('Skip', name => $name, reason => $reason);
 }
 
 sub note {
@@ -331,7 +339,12 @@ sub note {
 sub diag {
     my $self = shift;
     my ($message) = @_;
-    $self->send_event('Diag', message => $message);
+    my $hub = $self->{+HUB};
+    $self->send_event(
+        'Diag',
+        message => $message,
+        todo => $hub->get_todo || $hub->parent_todo,
+    );
 }
 
 sub plan {

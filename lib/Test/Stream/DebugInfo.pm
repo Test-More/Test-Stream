@@ -4,11 +4,35 @@ use warnings;
 
 use Test::Stream::Util qw/get_tid/;
 
-use Carp qw/confess/;
+use Carp qw/confess carp/;
 
 use Test::Stream::HashBase(
-    accessors => [qw/frame todo skip detail pid tid parent_todo/],
+    accessors => [qw/frame detail pid tid skip todo parent_todo/],
 );
+
+BEGIN {
+    for my $attr (SKIP, TODO, PARENT_TODO) {
+        my $set = __PACKAGE__->can("set_$attr");
+        my $get = __PACKAGE__->can($attr);
+
+        my $new_set = sub {
+            carp "Use of '$attr' attribute for DebugInfo is deprecated";
+            $set->(@_);
+        };
+
+        my $new_get = sub {
+            carp "Use of '$attr' attribute for DebugInfo is deprecated";
+            $get->(@_);
+        };
+
+        no strict 'refs';
+        no warnings 'redefine';
+        *{"set_$attr"}  = $new_set;
+        *{"$attr"}      = $new_get;
+        *{"_$attr"}     = $get;
+        *{"_set_$attr"} = $set;
+    }
+}
 
 sub init {
     confess "Frame is required"
@@ -16,6 +40,11 @@ sub init {
 
     $_[0]->{+PID} ||= $$;
     $_[0]->{+TID} ||= get_tid();
+
+    for my $attr (SKIP, TODO, PARENT_TODO) {
+        next unless defined $_[0]->{$attr};
+        $_[0]->alert("Use of '$attr' attribute for DebugInfo is deprecated")
+    }
 }
 
 sub snapshot { bless {%{$_[0]}}, __PACKAGE__ };
@@ -48,12 +77,24 @@ sub subname { $_[0]->{+FRAME}->[3] }
 
 sub no_diag {
     my $self = shift;
+    $self->alert("Use of the 'no_diag' method is deprecated");
+    $self->_no_diag(@_);
+}
+
+sub no_fail {
+    my $self = shift;
+    $self->alert("Use of the 'no_fail' method is deprecated");
+    $self->_no_fail(@_);
+}
+
+sub _no_diag {
+    my $self = shift;
     return defined($self->{+TODO})
         || defined($self->{+SKIP})
         || defined($self->{+PARENT_TODO});
 }
 
-sub no_fail {
+sub _no_fail {
     my $self = shift;
     return defined($self->{+TODO})
         || defined($self->{+SKIP});

@@ -2,15 +2,12 @@ package Test::Stream::Event::Ok;
 use strict;
 use warnings;
 
-use Scalar::Util qw/blessed/;
 use Carp qw/confess/;
 
-use Test::Stream::Formatter::TAP qw/OUT_STD OUT_TODO OUT_ERR/;
-
-use Test::Stream::Event::Diag();
-
 use base 'Test::Stream::Event';
-use Test::Stream::HashBase accessors => [qw/pass effective_pass name diag allow_bad_name/];
+use Test::Stream::HashBase accessors => [
+    qw/pass effective_pass name diag allow_bad_name todo diag_todo/
+];
 
 sub init {
     my $self = shift;
@@ -20,57 +17,12 @@ sub init {
     # Do not store objects here, only true or false
     $self->{+PASS} = $self->{+PASS} ? 1 : 0;
 
-    $self->{+EFFECTIVE_PASS} = $self->{+PASS} || $self->{+DEBUG}->no_fail || 0;
+    $self->{+EFFECTIVE_PASS} = ($self->{+PASS} || $self->{+TODO} || $self->{+DEBUG}->_no_fail) ? 1 : 0;
 
     return if $self->{+ALLOW_BAD_NAME};
     my $name = $self->{+NAME} || return;
     return unless index($name, '#') != -1 || index($name, "\n") != -1;
     $self->debug->throw("'$name' is not a valid name, names must not contain '#' or newlines.")
-}
-
-sub to_tap {
-    my $self = shift;
-    my ($num) = @_;
-
-    my $name  = $self->{+NAME};
-    my $debug = $self->{+DEBUG};
-    my $skip  = $debug->{skip};
-    my $todo  = $debug->{todo};
-
-    my $out = "";
-    $out .= "not " unless $self->{+PASS};
-    $out .= "ok";
-    $out .= " $num" if defined $num;
-    $out .= " - $name" if $name;
-
-    if (defined $skip && defined $todo) {
-        $out .= " # TODO & SKIP";
-        $out .= " $todo" if length $todo;
-    }
-    elsif (defined $todo) {
-        $out .= " # TODO";
-        $out .= " $todo" if length $todo;
-    }
-    elsif (defined $skip) {
-        $out .= " # skip";
-        $out .= " $skip" if length $skip;
-    }
-
-    my @out = [OUT_STD, "$out\n"];
-
-    if ($self->{+DIAG} && @{$self->{+DIAG}}) {
-        my $diag_handle = $debug->no_diag ? OUT_TODO : OUT_ERR;
-
-        for my $diag (@{$self->{+DIAG}}) {
-            chomp(my $msg = $diag);
-
-            $msg = "# $msg" unless $msg =~ m/^\n/;
-            $msg =~ s/\n/\n# /g;
-            push @out => [$diag_handle, "$msg\n"];
-        }
-    }
-
-    return @out;
 }
 
 sub default_diag {
@@ -81,7 +33,7 @@ sub default_diag {
     my $name  = $self->{+NAME};
     my $dbg   = $self->{+DEBUG};
     my $pass  = $self->{+PASS};
-    my $todo  = defined $dbg->todo;
+    my $todo  = defined($self->{+TODO} || $dbg->_todo);
 
     my $msg = $todo ? "Failed (TODO)" : "Failed";
     my $prefix = $ENV{HARNESS_ACTIVE} && !$ENV{HARNESS_IS_VERBOSE} ? "\n" : "";
@@ -191,6 +143,9 @@ This generates the default diagnostics string:
 =item @sets = $e->to_tap()
 
 =item @sets = $e->to_tap($num)
+
+B<***DEPRECATED***> This will be removed in the near future. See
+L<Test::Stream::Formatter::TAP> for TAP production.
 
 Generate the tap stream for this object. C<@sets> containes 1 or more arrayrefs
 that identify the IO handle to use, and the string that should be sent to it.

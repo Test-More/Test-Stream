@@ -113,12 +113,17 @@ sub run {
     return unless $self->should_run;
 
     my $unit = $self->{+UNIT};
-    my $ctx = $unit->context;
+    my $ctx  = $unit->context;
+    my $meta = $unit->meta;
+    my $skip = $meta ? $meta->{skip} : undef;
+
+    # Private accessor for deprecated thing, just until it goes away
+    $skip ||= $ctx->debug->_skip;
 
     # Skip?
-    if ($ctx->debug->skip) {
+    if ($skip) {
         $self->{+STAGE} = STAGE_COMPLETE();
-        $ctx->ok(1, $self->{+UNIT}->name);
+        $ctx->skip($unit->name, $skip);
         return;
     }
 
