@@ -203,7 +203,7 @@ $unit->primary(sub { 1 });
     $ran = 0;
     is(
         intercept { $one->run },
-        array { event Subtest => { pass => 1, name => 'bob' } },
+        array { event Subtest => { pass => 1, name => 'Subtest: bob' } },
         "Got subtest event (pass)"
     );
     is($ran, 1, "ran the iteration");
@@ -213,7 +213,7 @@ $unit->primary(sub { 1 });
     $ran = 0;
     is(
         intercept { $one->run },
-        array { event Subtest => { pass => 0, name => 'bob' } },
+        array { event Subtest => { pass => 0, name => 'Subtest: bob' } },
         "Got subtest event (fail)"
     );
     is($ran, 1, "ran the iteration");
