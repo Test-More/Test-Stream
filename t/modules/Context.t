@@ -277,6 +277,16 @@ is(
 {
     my $warnings;
     my $exit;
+
+    # Detect the line number reporting behaviour of this version of perl
+    my $use_block_end;
+    BEGIN {
+        sub X { my (undef, undef, $line) = caller;
+                    $use_block_end++ if ($line != shift); }
+        X __LINE__, # $use_block_end = 0
+        sub { }     # $use_block_end = 1
+    };
+
     sub {
         my $ctx = context();
 
@@ -288,7 +298,7 @@ is(
     }->();
 
     {
-        my $line = __LINE__ - 3;
+        my $line = $use_block_end ? __LINE__ - 3 : __LINE__ - 11 ;
         my $file = __FILE__;
         is(
             $warnings,
